@@ -1,0 +1,1 @@
+{"name":"talentos","version":"1.4.0","private":true,"scripts":{"start":"node server.js","dev":"node --env-file=.env server.js"},"engines":{"node":">=18"}}

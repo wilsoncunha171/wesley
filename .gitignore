@@ -1,0 +1,5 @@
+node_modules/
+data.db
+data.db.tmp
+audit.log
+.env
