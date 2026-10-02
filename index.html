@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Talentos — Recrutamento por Insígnias</title>
+<style>
+:root{--bg:#f5f6fb;--card:#fff;--tx:#1b1f2a;--mu:#667085;--bd:#e2e5ee;--pr:#4f46e5;--in:#f0f1f7;--ok:#16a34a;--no:#dc2626;--bz:#b9783f;--pt:#7d8aa3;--ou:#d99a00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1219;--card:#181c26;--tx:#eceef5;--mu:#98a1b5;--bd:#2a3040;--pr:#818cf8;--in:#222838}}
+:root[data-theme="dark"]{--bg:#0f1219;--card:#181c26;--tx:#eceef5;--mu:#98a1b5;--bd:#2a3040;--pr:#818cf8;--in:#222838}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:920px;margin:0 auto;padding:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:6px 0 12px}
+.br{font-weight:800;font-size:19px}.br span{color:var(--pr)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:12px}
+h3{margin:0 0 10px;font-size:16px}h2{margin:4px 0 12px;font-size:20px}
+label{display:block;font-size:13px;color:var(--mu);font-weight:600}
+input,select,textarea{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--in);color:var(--tx);font:inherit}
+textarea{resize:vertical}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px}
+.g3{display:grid;grid-template-columns:2fr 2fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end}
+@media(max-width:560px){.g3{grid-template-columns:1fr 1fr}}
+button{font:inherit;cursor:pointer;border-radius:9px;border:1px solid var(--bd);background:var(--in);color:var(--tx);padding:8px 13px}
+button.pri{background:var(--pr);border-color:var(--pr);color:#fff;font-weight:600}
+button.sm{padding:5px 10px;font-size:13px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
+.tabs button.on,.seg .on{background:var(--pr);color:#fff;border-color:var(--pr)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chip{background:var(--in);border:1px solid var(--bd);border-radius:99px;padding:2px 10px;font-size:13px}
+.chip b{margin-left:6px;cursor:pointer;color:var(--mu)}
+.chip.ok{border-color:var(--ok);color:var(--ok)}.chip.no{border-color:var(--no);color:var(--no);opacity:.8}
+.bd{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:99px;font-weight:700;font-size:13px;color:#fff}
+.Bronze{background:var(--bz)}.Prata{background:var(--pt)}.Ouro{background:var(--ou)}.Nenhuma{background:var(--mu)}
+.bar{height:8px;border-radius:9px;background:var(--in);overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;background:var(--pr)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.mu{color:var(--mu);font-size:13px}.big{font-size:40px;line-height:1}
+.pct{font-size:22px;font-weight:800;color:var(--pr)}
+.err{color:var(--no);font-size:13px;min-height:18px}
+details summary{cursor:pointer;color:var(--pr);font-weight:600;margin-top:8px}
+.seg{display:flex;gap:6px;margin-bottom:12px}.seg button{flex:1}
+</style></head><body><div class="w"><header><div class="br">🏅 Talent<span>os</span></div><div id="hd"></div></header><div id="app"></div></div>
+<datalist id="dl-city"></datalist><datalist id="dl-sk"></datalist><datalist id="dl-rl"></datalist><datalist id="dl-ar"></datalist>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const EDU={'Ensino médio':2,'Técnico':5,'Graduação':8,'Pós-graduação':12,'Mestrado/Doutorado':15};
+const ENG={'Nenhum':0,'Básico':1,'Intermediário':3,'Avançado':5,'Fluente':7};
+const AV=['Imediata','15 dias','30 dias','Mais de 30 dias'],MD=['Presencial','Híbrido','Remoto'];
+const QT={text:'Texto curto',long:'Texto longo',choice:'Múltipla escolha',yesno:'Sim/Não',number:'Número',date:'Data',url:'Link'};
+const UF={AC:['Acre','Rio Branco'],AL:['Alagoas','Maceió'],AP:['Amapá','Macapá'],AM:['Amazonas','Manaus'],BA:['Bahia','Salvador'],CE:['Ceará','Fortaleza'],DF:['Distrito Federal','Brasília'],ES:['Espírito Santo','Vitória'],GO:['Goiás','Goiânia'],MA:['Maranhão','São Luís'],MT:['Mato Grosso','Cuiabá'],MS:['Mato Grosso do Sul','Campo Grande'],MG:['Minas Gerais','Belo Horizonte'],PA:['Pará','Belém'],PB:['Paraíba','João Pessoa'],PR:['Paraná','Curitiba'],PE:['Pernambuco','Recife'],PI:['Piauí','Teresina'],RJ:['Rio de Janeiro','Rio de Janeiro'],RN:['Rio Grande do Norte','Natal'],RS:['Rio Grande do Sul','Porto Alegre'],RO:['Rondônia','Porto Velho'],RR:['Roraima','Boa Vista'],SC:['Santa Catarina','Florianópolis'],SP:['São Paulo','São Paulo'],SE:['Sergipe','Aracaju'],TO:['Tocantins','Palmas']};
+const SUG={'dl-sk':['JavaScript','TypeScript','Python','Java','C#','PHP','SQL','React','Node.js','HTML/CSS','Git','Docker','AWS','Excel','Power BI','Atendimento','Vendas','Negociação','Liderança','Comunicação','Gestão de projetos','Scrum','Marketing digital','SEO','Design gráfico','Figma','Contabilidade','Logística','Inglês técnico','Análise de dados'],
+'dl-rl':['Desenvolvedor(a)','Analista','Assistente','Auxiliar','Coordenador(a)','Gerente','Estagiário(a)','Vendedor(a)','Atendente','Designer','Contador(a)','Motorista','Técnico(a)','Supervisor(a)'],
+'dl-ar':['Tecnologia','Suporte','Vendas','Marketing','Financeiro','RH','Logística','Operações','Jurídico','Saúde','Educação','Atendimento']};
+const EMPTY=()=>({uf:'',city:'',phone:'',link:'',summary:'',edu:'Ensino médio',eng:'Nenhum',avail:'Imediata',salary:'',skills:[],exps:[],certs:[]});
+const newJ=()=>({title:'',area:'',desc:'',skills:[],minYears:0,minEdu:'Ensino médio',uf:'',city:'',mode:'Presencial',qs:[]});
+let S=null,jobs=[],apps=[],cands=[],role='cand',mode='login',tab='',P=null,J=null,sel=null,applying=null,flt='all',pool=false,sec={},pend=null,rtok='',note='',team=[],teamErr='';
+async function api(m,u,b){const r=await fetch('/api'+u,{method:m,credentials:'same-origin',headers:{'Content-Type':'application/json','X-Requested-With':'talentos'},body:b?JSON.stringify(b):undefined});
+const d=await r.json().catch(()=>({}));if(r.status===401&&S&&u!=='/me'){S=null;jobs=[];apps=[];cands=[];render()}if(!r.ok)throw new Error(d.error||'Erro de comunicação com o servidor.');return d}
+const clone=o=>JSON.parse(JSON.stringify(o));
+const yrs=p=>(p.exps||[]).reduce((a,e)=>a+(+e.years||0),0);
+const score=p=>Math.min(yrs(p),12)*3+Math.min(p.skills.length,12)*3+(EDU[p.edu]||0)+(ENG[p.eng]||0)+Math.min(p.certs.length,5)*3;
+const TH=[[70,'Ouro','🥇'],[35,'Prata','🥈'],[10,'Bronze','🥉']];
+function badge(sc){const t=TH.find(x=>sc>=x[0]);return t?{n:t[1],e:t[2]}:{n:'Nenhuma',e:'🔹'}}
+const pill=sc=>{const b=badge(sc);return`<span class="bd ${b.n}">${b.e} ${b.n==='Nenhuma'?'Iniciante':b.n}</span>`};
+function match(p,j){const have=p.skills.map(s=>s.toLowerCase());
+const sk=j.skills.length?j.skills.filter(r=>have.includes(r.toLowerCase())).length/j.skills.length:1;
+const ex=j.minYears?Math.min(yrs(p)/j.minYears,1):1;
+const need=EDU[j.minEdu]||0,ed=need?Math.min((EDU[p.edu]||0)/need,1):1;
+const lc=j.mode==='Remoto'||!j.uf?1:p.uf===j.uf?((p.city||'').toLowerCase()===(j.city||'').toLowerCase()||!j.city?1:.7):.2;
+return Math.round((sk*.45+ex*.2+ed*.15+Math.min(score(p)/70,1)*.1+lc*.1)*100)}
+const place=o=>[o.city,o.uf].filter(Boolean).join('/')||'—';
+const CC={};
+async function fillCities(uf){const dl=$('#dl-city');if(!dl||!UF[uf])return;let l=CC[uf];
+if(!l){try{const r=await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios?orderBy=nome`);l=(await r.json()).map(c=>c.nome)}catch(e){l=[UF[uf][1]]}CC[uf]=l}
+dl.innerHTML=l.map(c=>`<option value="${esc(c)}">`).join('')}
+async function refresh(){jobs=await api('GET','/jobs');if(S.role==='rec')[apps,cands]=await Promise.all([api('GET','/apps').catch(()=>[]),api('GET','/candidates').catch(()=>[])]);else{apps=await api('GET','/apps');cands=[]}}
+async function init(){for(const k in SUG)$('#'+k).innerHTML=SUG[k].map(x=>`<option value="${x}">`).join('');
+if(location.hash.startsWith('#reset=')){rtok=location.hash.slice(7);mode='reset';history.replaceState(null,'',location.pathname)}
+if(!rtok){try{S=await api('GET','/me');await refresh()}catch(e){S=null}}go()}
+function go(){if(S){tab=S.role==='cand'?'perfil':'vagas';if(S.role==='cand')P=clone(S.p);sel=null;applying=null}render()}
+function render(){
+$('#hd').innerHTML=S?`<span class="mu">${esc(S.name)} · ${S.role==='rec'?'Recrutador · '+esc(S.company.name)+' · plano '+esc(S.company.limits.name)+' ('+S.company.jobsOpen+'/'+S.company.limits.jobs+' vagas)':'Candidato'}</span> <button class="sm" onclick="out()">Sair</button>`:'';
+$('#app').innerHTML=!S?vAuth():S.role==='cand'?vCand():vRec();
+fillCities(S?.role==='cand'&&tab==='perfil'?P.uf:tab==='nova'&&J?J.uf:'')}
+async function out(){try{await api('POST','/logout')}catch(e){}S=null;P=J=null;jobs=[];apps=[];cands=[];render()}
+const er=m=>{const e=$('#er');e.className='err';e.textContent=m};
+function go2(m){mode=m;pend=null;note='';render()}
+function vAuth(){const r=mode==='reg',em='<label>E-mail<input id="em" type="email" autocomplete="email" maxlength="120"></label><br>';
+const pw=l=>`<label>${l}<input id="pw" type="password" maxlength="128" autocomplete="${mode==='login'?'current-password':'new-password'}"></label><br>`;
+const T={login:'Entrar',reg:'Criar conta',forgot:'Recuperar senha',reset:'Nova senha'}[mode],B={login:'Entrar',reg:'Cadastrar',forgot:'Enviar link',reset:'Salvar nova senha'}[mode];
+const f=pend?'<label>Código de 6 dígitos do app autenticador (ou código de recuperação)<input id="c2" inputmode="numeric" autocomplete="one-time-code" maxlength="20"></label><br>':mode==='forgot'?em:mode==='reset'?pw('Nova senha (10+ caracteres, com letras e números)'):
+(r?`<div class="seg"><button class="${role==='cand'?'on':''}" onclick="role='cand';render()">Sou candidato</button><button class="${role==='rec'?'on':''}" onclick="role='rec';render()">Sou recrutador</button></div><label>Nome<input id="nm" maxlength="80"></label><br>`:'')+em+pw('Senha'+(r?' (10+ caracteres, com letras e números)':''))+(r&&role==='rec'?'<label>Nome da empresa<input id="co" maxlength="80"></label><br><label>Código de convite da plataforma<input id="cd" autocomplete="off"></label><br>':'');
+return`<div class="card" style="max-width:420px;margin:20px auto"><h2>${pend?'Verificação em duas etapas':T}</h2>${f}<div class="${note?'mu':'err'}" id="er">${esc(note)}</div>
+<button class="pri" style="width:100%" onclick="auth()">${pend?'Confirmar':B}</button>
+<p class="mu" style="text-align:center">${mode==='login'&&!pend?`<a href="#" onclick="go2('reg');return false">Criar conta</a> · <a href="#" onclick="go2('forgot');return false">Esqueci minha senha</a>`:`<a href="#" onclick="go2('login');return false">Voltar ao login</a>`}</p></div>`}
+async function auth(){try{
+if(mode==='forgot'){await api('POST','/forgot',{email:$('#em').value});note='Se o e-mail estiver cadastrado, enviamos um link de recuperação (válido por 30 min). Confira também o spam.';mode='login';return render()}
+if(mode==='reset'){await api('POST','/reset',{token:rtok,password:$('#pw').value});rtok='';mode='login';note='Senha alterada! Entre com a nova senha.';return render()}
+const r=mode==='reg',body=pend?{...pend,code:$('#c2').value}:{name:r?$('#nm').value:'',email:$('#em').value,password:$('#pw').value,role,code:$('#cd')?.value,company:$('#co')?.value};
+const d=await api('POST',r?'/register':'/login',body);
+if(d.need2fa){pend={email:body.email,password:body.password};note='';return render()}
+pend=null;note='';S=d.user;await refresh();go()}catch(e){er(e.message)}}
+/* ---------- helpers ---------- */
+const inp=(l,k,t='text',ex='')=>`<label>${l}<input type="${t}" ${ex} value="${esc(P[k])}" onchange="P.${k}=this.value"></label>`;
+const sl=(l,k,o)=>`<label>${l}<select onchange="P.${k}=this.value">${o.map(x=>`<option${P[k]===x?' selected':''}>${x}</option>`).join('')}</select></label>`;
+const locF=o=>{const O=o==='P'?P:J;return`<label>Estado<select onchange="${o}.uf=this.value;${o}.city='';render()"><option value="">Selecione</option>${Object.entries(UF).map(([k,v])=>`<option value="${k}"${O.uf===k?' selected':''}>${k} — ${v[0]}</option>`).join('')}</select></label>
+<label>Cidade<input list="dl-city" value="${esc(O.city)}" placeholder="${O.uf?'Comece a digitar':'Escolha o estado'}" ${O.uf?'':'disabled'} onchange="${o}.city=this.value"></label>`};
+const chips=(o,k)=>{const O=o==='P'?P:J;return`<div class="chips">${O[k].map((s,i)=>`<span class="chip">${esc(s)}<b onclick="${o}.${k}.splice(${i},1);render()">×</b></span>`).join('')}</div><input ${k==='skills'?'list="dl-sk"':''} placeholder="Digite ou escolha e pressione Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();tag('${o}','${k}',this)}">`};
+function tag(o,k,el){const v=el.value.trim(),O=o==='P'?P:J;if(v&&!O[k].some(x=>x.toLowerCase()===v.toLowerCase()))O[k].push(v);render()}
+function mk(e){const d=e.value.replace(/\D/g,'').slice(0,11);e.value=d.length>10?d.replace(/(\d\d)(\d{5})(\d{4})/,'($1) $2-$3'):d.length>6?d.replace(/(\d\d)(\d{4})(\d*)/,'($1) $2-$3'):d.length>2?d.replace(/(\d\d)(\d*)/,'($1) $2'):d}
+/* ---------- candidato ---------- */
+function vCand(){const t=[['perfil','Meu perfil'],['vagas','Vagas'],['cands','Candidaturas'],['seg','Segurança']];
+return`<div class="tabs">${t.map(x=>`<button class="${tab===x[0]?'on':''}" onclick="tab='${x[0]}';applying=null;render()">${x[1]}</button>`).join('')}</div>`+(tab==='perfil'?vPerfil():tab==='vagas'?vVagas():tab==='seg'?vSeg():vMinhas())}
+function vPerfil(){const sc=score(P),b=badge(sc),nx=[...TH].reverse().find(x=>sc<x[0]);
+return`<div class="card"><div class="row"><div><div class="big">${b.e}</div><h2>${b.n==='Nenhuma'?'Sem insígnia ainda':'Insígnia '+b.n}</h2></div><div class="pct">${sc} pts</div></div>
+<div class="bar"><i style="width:${Math.min(sc/70*100,100)}%"></i></div>
+<div class="mu">${nx?`Faltam ${nx[0]-sc} pts para ${nx[1]}. `:'Nível máximo! '}Pontos vêm de experiência, habilidades, escolaridade, inglês e certificações.</div></div>
+<div class="card"><h3>Dados e formação</h3><div class="g">${locF('P')}<label>Telefone<input type="tel" inputmode="numeric" placeholder="(11) 91234-5678" value="${esc(P.phone)}" oninput="mk(this)" onchange="P.phone=this.value"></label>${inp('LinkedIn / Portfólio (URL)','link','url')}${sl('Escolaridade','edu',Object.keys(EDU))}${sl('Inglês','eng',Object.keys(ENG))}${sl('Disponibilidade','avail',AV)}${inp('Pretensão salarial (R$)','salary','number','min="0" step="100"')}</div>
+<label>Resumo profissional<textarea rows="3" onchange="P.summary=this.value">${esc(P.summary)}</textarea></label></div>
+<div class="card"><h3>Experiências</h3>${P.exps.map((e,i)=>`<div class="g3"><label>Cargo<input list="dl-rl" value="${esc(e.role)}" onchange="P.exps[${i}].role=this.value"></label><label>Empresa<input value="${esc(e.co)}" onchange="P.exps[${i}].co=this.value"></label><label>Anos<input type="number" min="0" value="${esc(e.years)}" onchange="P.exps[${i}].years=this.value"></label><button class="sm" onclick="P.exps.splice(${i},1);render()">✕</button></div>`).join('')}<button class="sm" onclick="P.exps.push({role:'',co:'',years:1});render()">+ Experiência</button></div>
+<div class="card"><h3>Habilidades</h3>${chips('P','skills')}</div><div class="card"><h3>Certificações e cursos</h3>${chips('P','certs')}</div>
+<div class="card"><h3>Privacidade (LGPD)</h3><label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--tx)"><input type="checkbox" style="width:auto;margin:0" ${P.open?'checked':''} onchange="P.open=this.checked"> Permitir que recrutadores me encontrem no banco de talentos</label><p class="mu">Seus dados só são vistos por recrutadores quando você se candidata ou autoriza acima. Lembre de salvar o perfil.</p><button class="sm" onclick="exportData()">Baixar meus dados</button> <button class="sm" onclick="delAccount()">Excluir minha conta</button></div>
+<button class="pri" onclick="saveP()">Salvar perfil</button>`}
+async function saveP(){try{S=await api('PUT','/profile',P);P=clone(S.p);render();alert('Perfil salvo!')}catch(e){alert(e.message)}}
+function vSeg(){let h='<div class="card"><h3>Verificação em duas etapas (2FA)</h3>';
+if(sec.codes)h+=`<p><b>Guarde seus códigos de recuperação.</b> Cada um vale uma vez e não será mostrado de novo:</p><div class="chips">${sec.codes.map(c=>`<span class="chip"><code>${esc(c)}</code></span>`).join('')}</div><button class="sm" onclick="sec={};render()">Já guardei</button>`;
+else if(S.t2)h+=`<p>✅ Ativada. Para desativar, informe sua senha e um código atual:</p><div class="g"><label>Senha<input id="dp" type="password" autocomplete="current-password"></label><label>Código<input id="dc" inputmode="numeric" maxlength="20"></label></div><button class="sm" onclick="dis2()">Desativar 2FA</button>`;
+else if(sec.secret)h+=`<p>1) No app autenticador (Google Authenticator, Authy, Microsoft Authenticator), escolha <b>inserir chave manualmente</b> e digite:</p><p><code style="font-size:16px;word-break:break-all">${esc(sec.secret.match(/.{1,4}/g).join(' '))}</code></p><p class="mu">Tipo: baseado em tempo · Conta: ${esc(S.email)}</p><label>2) Digite o código de 6 dígitos gerado<input id="ec" inputmode="numeric" maxlength="6"></label><br><button class="pri" onclick="en2()">Ativar</button>`;
+else h+=`<p>Proteja sua conta com um código do celular além da senha.${S.role==='rec'?' <b>Recomendado</b> para recrutadores, que acessam dados pessoais.':''}</p><button class="pri" onclick="set2()">Ativar 2FA</button>`;
+return h+'</div>'}
+async function set2(){try{sec=await api('POST','/2fa/setup');render()}catch(e){alert(e.message)}}
+async function en2(){try{const d=await api('POST','/2fa/enable',{code:$('#ec').value});S.t2=true;sec={codes:d.codes};await refresh();render()}catch(e){alert(e.message)}}
+async function dis2(){try{await api('POST','/2fa/disable',{password:$('#dp').value,code:$('#dc').value});S.t2=false;sec={};if(S.req2){apps=[];cands=[]}render()}catch(e){alert(e.message)}}
+async function exportData(){try{const d=await api('GET','/export'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));a.download='meus-dados-talentos.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1e4)}catch(e){alert(e.message)}}
+async function delAccount(){const pw=prompt('Para excluir sua conta e todos os seus dados de forma permanente, digite sua senha:');if(!pw)return;try{await api('DELETE','/account',{password:pw});S=null;P=null;jobs=[];apps=[];cands=[];render();alert('Conta excluída.')}catch(e){alert(e.message)}}
+function qf(q,i){const n=`q${i}`,L=`<label>${esc(q.label)}`;
+if(q.type==='long')return L+`<textarea name="${n}" rows="3"></textarea></label>`;
+if(q.type==='choice')return L+`<select name="${n}">${(q.opts.length?q.opts:['Sim','Não']).map(o=>`<option>${esc(o)}</option>`).join('')}</select></label>`;
+if(q.type==='yesno')return L+`<select name="${n}"><option>Sim</option><option>Não</option></select></label>`;
+return L+`<input name="${n}" type="${{text:'text',number:'number',date:'date',url:'url'}[q.type]}"></label>`}
+function vVagas(){const p=S.p;return jobs.map(j=>{const mine=apps.find(a=>a.jobId===j.id),have=p.skills.map(s=>s.toLowerCase());
+return`<div class="card"><div class="row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · mín. ${j.minYears} ano(s) · ${esc(j.minEdu)}</span></div><div class="pct">${match(p,j)}%<div class="mu" style="font-weight:400">compatível</div></div></div>
+<p>${esc(j.desc)}</p><div class="chips">${j.skills.map(s=>`<span class="chip ${have.includes(s.toLowerCase())?'ok':''}">${esc(s)}</span>`).join('')}</div>
+${mine?`<span class="mu">✓ Candidatura enviada — status: <b>${esc(mine.status)}</b></span>`:applying===j.id?`<div style="margin-top:10px"><h3>Formulário da vaga</h3>${j.qs.map(qf).join('<br>')}<br><button class="pri" onclick="apply('${j.id}')">Enviar candidatura</button> <button onclick="applying=null;render()">Cancelar</button></div>`:`<button class="pri" onclick="applying='${j.id}';render()">Candidatar-se</button>`}</div>`}).join('')||'<div class="card mu">Ainda não há vagas.</div>'}
+async function apply(id){const j=jobs.find(x=>x.id===id);try{await api('POST','/apply',{jobId:id,answers:j.qs.map((q,i)=>$(`[name=q${i}]`).value)});apps=await api('GET','/apps');applying=null;render()}catch(e){alert(e.message)}}
+function vMinhas(){return apps.length?apps.map(a=>{const j=jobs.find(x=>x.id===a.jobId);return`<div class="card row"><div><b>${esc(j?.title)}</b><div class="mu">Enviada em ${esc(a.date)}</div></div><span class="chip">${esc(a.status)}</span></div>`}).join(''):'<div class="card mu">Você ainda não se candidatou.</div>'}
+/* ---------- recrutador ---------- */
+const can=k=>({jobs:['admin','rh'],move:['admin','rh','recrutador'],team:['admin']}[k]||[]).includes(S.crole);
+function vRec(){const t=[['vagas','Vagas e ranking'],...(can('jobs')?[['nova','Nova vaga']]:[]),...(can('team')?[['equipe','Equipe']]:[]),['seg','Segurança']];
+return`<div class="tabs">${t.map(x=>`<button class="${tab===x[0]?'on':''}" onclick="tab='${x[0]}';sel=null;if('${x[0]}'==='nova')J=J||newJ();render();if('${x[0]}'==='equipe')loadTeam()">${x[1]}</button>`).join('')}</div>`+(S.req2&&!S.t2?'<div class="card" style="border-color:var(--no)">🔒 Ative a verificação em duas etapas na aba Segurança para acessar os candidatos.</div>':'')+(tab==='seg'?vSeg():tab==='nova'?vNova():tab==='equipe'?vEquipe():sel?vRank():vLista())}
+/* ---------- equipe (somente administrador) ---------- */
+const CR={admin:'Administrador',rh:'RH',recrutador:'Recrutador',gestor:'Gestor (somente leitura)'};
+const crOpts=v=>Object.entries(CR).map(([k,l])=>`<option value="${k}"${v===k?' selected':''}>${l}</option>`).join('');
+async function loadTeam(){try{team=await api('GET','/team');teamErr=''}catch(e){team=[];teamErr=e.message}render()}
+function vEquipe(){const c=S.company;
+return`<div class="card"><div class="row"><h3 style="margin:0">Equipe</h3><span class="mu">${c.usersN}/${c.limits.users} usuários no plano ${esc(c.limits.name)}</span></div>
+${teamErr?`<div class="err">${esc(teamErr)}</div>`:''}
+${team.map(u=>`<div class="row" style="padding:10px 0;border-top:1px solid var(--bd)"><div><b>${esc(u.name)}</b>${u.id===S.id?' <span class="mu">(você)</span>':''}<div class="mu">${esc(u.email)} ${u.invited?'· <span class="chip">convite pendente</span>':''} ${u.t2?'· 🔐 2FA':''}</div></div>
+<div><select style="width:auto" onchange="setRole('${u.id}',this.value)">${crOpts(u.crole)}</select> ${u.id===S.id?'':`<button class="sm" onclick="delMember('${u.id}')">Remover</button>`}</div></div>`).join('')||(teamErr?'':'<div class="mu">Carregando…</div>')}</div>
+<div class="card"><h3>Convidar pessoa</h3><div class="g"><label>Nome<input id="tn" maxlength="80"></label><label>E-mail<input id="te" type="email" maxlength="120"></label><label>Papel<select id="tr">${crOpts('recrutador')}</select></label></div>
+<p class="mu">A pessoa recebe um link por e-mail (válido por 72 horas) para definir a senha. Administrador e RH criam vagas; Recrutador move candidatos; Gestor só consulta.</p>
+<div class="err" id="er"></div><button class="pri" onclick="invite()">Enviar convite</button></div>`}
+async function invite(){try{await api('POST','/team',{name:$('#tn').value,email:$('#te').value,crole:$('#tr').value});S=await api('GET','/me');await loadTeam();const e=$('#er');if(e){e.className='mu';e.textContent='Convite enviado.'}}catch(e){er(e.message)}}
+async function setRole(id,r){try{await api('PATCH','/team/'+id,{crole:r});if(id===S.id)S=await api('GET','/me');await loadTeam()}catch(e){alert(e.message);loadTeam()}}
+async function delMember(id){const u=team.find(x=>x.id===id);if(!u||!confirm('Remover '+u.name+' da equipe? O acesso será encerrado imediatamente.'))return;try{await api('DELETE','/team/'+id);S=await api('GET','/me');await loadTeam()}catch(e){alert(e.message)}}
+function vLista(){return jobs.map(j=>`<div class="card row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${j.status==='open'?'':'🔒 Encerrada · '}${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · ${apps.filter(a=>a.jobId===j.id).length} candidatura(s)</span></div><div><button class="pri" onclick="sel='${j.id}';flt='all';render()">Ver melhores candidatos</button> ${can('jobs')?`<button onclick="toggleJ('${j.id}','${j.status==='open'?'closed':'open'}')">${j.status==='open'?'Encerrar':'Reabrir'}</button>`:''}</div></div>`).join('')||'<div class="card mu">Crie sua primeira vaga.</div>'}
+function vNova(){return`<div class="card"><h3>Dados da vaga</h3><div class="g"><label>Título<input list="dl-rl" value="${esc(J.title)}" onchange="J.title=this.value"></label><label>Área<input list="dl-ar" value="${esc(J.area)}" onchange="J.area=this.value"></label>${locF('J')}<label>Modalidade<select onchange="J.mode=this.value">${MD.map(x=>`<option${J.mode===x?' selected':''}>${x}</option>`).join('')}</select></label><label>Anos mínimos de experiência<input type="number" min="0" value="${J.minYears}" onchange="J.minYears=+this.value"></label><label>Escolaridade mínima<select onchange="J.minEdu=this.value">${Object.keys(EDU).map(x=>`<option${J.minEdu===x?' selected':''}>${x}</option>`).join('')}</select></label></div>
+<label>Descrição<textarea rows="3" onchange="J.desc=this.value">${esc(J.desc)}</textarea></label></div>
+<div class="card"><h3>Habilidades exigidas</h3>${chips('J','skills')}</div>
+<div class="card"><h3>Perguntas do formulário</h3>${J.qs.map((x,i)=>`<div class="g" style="align-items:end"><label>Pergunta<input value="${esc(x.label)}" onchange="J.qs[${i}].label=this.value"></label><label>Tipo<select onchange="J.qs[${i}].type=this.value;render()">${Object.entries(QT).map(([k,v])=>`<option value="${k}"${x.type===k?' selected':''}>${v}</option>`).join('')}</select></label>${x.type==='choice'?`<label>Opções (separe por vírgula)<input value="${esc((x.opts||[]).join(','))}" onchange="J.qs[${i}].opts=this.value.split(',').map(s=>s.trim()).filter(Boolean)"></label>`:''}<button class="sm" onclick="J.qs.splice(${i},1);render()">Remover</button></div>`).join('')}<button class="sm" onclick="J.qs.push({label:'',type:'text',opts:['Opção 1','Opção 2']});render()">+ Pergunta</button></div>
+<button class="pri" onclick="pub()">Publicar vaga</button>`}
+async function toggleJ(id,st){try{await api('PATCH','/jobs/'+id,{status:st});jobs=await api('GET','/jobs');S=await api('GET','/me');render()}catch(e){alert(e.message)}}
+async function pub(){J.qs=J.qs.filter(q=>q.label.trim());try{await api('POST','/jobs',J);jobs=await api('GET','/jobs');S=await api('GET','/me');J=null;tab='vagas';render()}catch(e){alert(e.message)}}
+function vRank(){const j=jobs.find(x=>x.id===sel);
+let l=apps.filter(a=>a.jobId===sel).map(a=>({u:cands.find(x=>x.id===a.candId),a}));
+if(pool)cands.filter(u=>!l.some(x=>x.u&&x.u.id===u.id)).forEach(u=>l.push({u,a:null}));
+l=l.filter(x=>x.u).map(x=>({...x,m:match(x.u.p,j),sc:score(x.u.p)})).filter(x=>flt==='all'||badge(x.sc).n===flt).sort((a,b)=>b.m-a.m||b.sc-a.sc);
+return`<div class="row"><h2>${esc(j.title)}</h2><button onclick="sel=null;render()">← Voltar</button></div>
+<div class="card row"><div class="tabs" style="margin:0">${['all','Ouro','Prata','Bronze'].map(f=>`<button class="sm ${flt===f?'on':''}" onclick="flt='${f}';render()">${f==='all'?'Todos':f}</button>`).join('')}</div><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" style="width:auto;margin:0" ${pool?'checked':''} onchange="pool=this.checked;render()">Incluir banco de talentos (quem autorizou)</label></div>
+${l.map((x,i)=>{const p=x.u.p,have=p.skills.map(s=>s.toLowerCase());
+return`<div class="card"><div class="row"><div><b>${i===0&&x.m>0?'⭐ ':''}${esc(x.u.name)}</b> ${pill(x.sc)}<div class="mu">📍 ${esc(place(p))} · ${yrs(p)} ano(s) · ${esc(p.edu)} · Inglês ${esc(p.eng)} · ${x.sc} pts</div></div><div class="pct">${x.m}%</div></div>
+<div class="bar"><i style="width:${x.m}%"></i></div>
+<div class="chips">${j.skills.map(s=>`<span class="chip ${have.includes(s.toLowerCase())?'ok':'no'}">${have.includes(s.toLowerCase())?'✓':'✗'} ${esc(s)}</span>`).join('')}</div>
+<div class="row">${x.a?`<label>Status <select style="width:auto" ${can('move')?'':'disabled'} onchange="setSt('${x.a.id}',this.value)">${['Recebida','Triagem','Entrevista','Aprovado','Recusado'].map(s=>`<option${x.a.status===s?' selected':''}>${s}</option>`).join('')}</select></label>`:'<span class="mu">Não se candidatou (banco de talentos)</span>'}</div>
+<details><summary>Ver perfil completo</summary><p>${esc(p.summary)}</p><p class="mu">${esc(x.u.email)} · ${esc(p.phone)} · ${esc(p.link)} · Disponibilidade: ${esc(p.avail)} · Pretensão: R$ ${esc(p.salary)}</p>
+<b>Experiências</b>${p.exps.map(e=>`<div class="mu">${esc(e.role)} — ${esc(e.co)} (${esc(e.years)} ano(s))</div>`).join('')||'<div class="mu">—</div>'}
+<div class="chips">${p.skills.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}${p.certs.map(s=>`<span class="chip">🎓 ${esc(s)}</span>`).join('')}</div>
+${x.a?'<b>Respostas</b>'+x.a.ans.map(r=>`<div class="mu">${esc(r.q)}: <b style="color:var(--tx)">${esc(r.a)}</b></div>`).join(''):''}</details></div>`}).join('')||'<div class="card mu">Nenhum candidato neste filtro.</div>'}`}
+async function setSt(id,s){try{await api('PATCH','/apps/'+id,{status:s});apps.find(a=>a.id===id).status=s}catch(e){alert(e.message);render()}}
+init();
+</script></body></html>
