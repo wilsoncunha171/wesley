@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15123a">
 <title>Talentos — Recrutamento por Insígnias</title>
 <style>
 :root{--bg:#f5f6fb;--card:#fff;--tx:#1b1f2a;--mu:#667085;--bd:#e2e5ee;--pr:#4f46e5;--in:#f0f1f7;--ok:#16a34a;--no:#dc2626;--bz:#b9783f;--pt:#7d8aa3;--ou:#d99a00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -16,8 +17,11 @@ label{display:block;font-size:13px;color:var(--mu);font-weight:600}
 input,select,textarea{width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--in);color:var(--tx);font:inherit}
 textarea{resize:vertical}
 .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px}
+.g.fg{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}.fg>label:first-child{grid-column:1/-1}
 .g3{display:grid;grid-template-columns:2fr 2fr 1fr auto;gap:8px;margin-bottom:8px;align-items:end}
 @media(max-width:560px){.g3{grid-template-columns:1fr 1fr}}
+a{color:var(--pr)}
+.it{border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:10px}
 button{font:inherit;cursor:pointer;border-radius:9px;border:1px solid var(--bd);background:var(--in);color:var(--tx);padding:8px 13px}
 button.pri{background:var(--pr);border-color:var(--pr);color:#fff;font-weight:600}
 button.sm{padding:5px 10px;font-size:13px}
@@ -36,8 +40,79 @@ button.sm{padding:5px 10px;font-size:13px}
 .err{color:var(--no);font-size:13px;min-height:18px}
 details summary{cursor:pointer;color:var(--pr);font-weight:600;margin-top:8px}
 .seg{display:flex;gap:6px;margin-bottom:12px}.seg button{flex:1}
+
+:root{--serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif}
+:focus-visible{outline:2px solid var(--pr);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.tabs button{white-space:nowrap;flex:none}
+.btn,.btn-file{display:inline-block;text-decoration:none;font:inherit;cursor:pointer;border-radius:9px;border:1px solid var(--bd);background:var(--in);color:var(--tx);padding:8px 13px}
+.btn.pri{background:var(--pr);border-color:var(--pr);color:#fff;font-weight:600}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn-file{position:relative;font-size:14px;font-weight:600;margin-top:6px}
+.btn-file:focus-within{outline:2px solid var(--pr);outline-offset:2px}
+.sw{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--tx)}.sw input{width:auto;margin:0}
+.bell{position:relative;padding:5px 9px}
+.bell i{position:absolute;top:-6px;right:-6px;display:inline-block;background:var(--no);color:#fff;border-radius:99px;font:700 11px/1 system-ui,sans-serif;padding:3px 6px}
+.bell i[hidden]{display:none}
+.stg{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.stb{padding:5px 11px;font-size:13px;border-radius:99px}
+.stb.cur{background:var(--pr);border-color:var(--pr);color:#fff;font-weight:700}
+.stb.rej.cur{background:var(--no);border-color:var(--no)}
+.stb:disabled{cursor:default;opacity:.75}
+.mvp{border:1px solid var(--pr);border-radius:12px;padding:12px;margin:10px 0;background:var(--in)}
+.msg{white-space:pre-wrap;font:inherit;margin:6px 0;padding:10px;border-radius:9px;background:var(--bg);border:1px solid var(--bd);max-height:240px;overflow:auto}
+.res{border-left:3px solid var(--ok);padding:4px 10px;margin:8px 0;font-size:14px}.res .btn{margin:6px 0}
+.nt.new{border-color:var(--pr)}
+.stp{display:flex;gap:4px;list-style:none;padding:0;margin:10px 0 4px}
+.stp li{flex:1;text-align:center;font-size:12px;color:var(--mu);border-top:4px solid var(--bd);padding-top:4px}
+.stp li.done{border-color:var(--ok);color:var(--tx)}.stp li.cur{border-color:var(--pr);color:var(--pr);font-weight:700}
+.stp.off{opacity:.45}
+#toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);background:#1b1f2a;color:#fff;padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;max-width:90vw;font-size:14px;border:1px solid #3a4157}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+/* ---- tela de entrada ---- */
+body.auth{background:radial-gradient(ellipse 70% 55% at 28% -5%,rgba(129,140,248,.30),transparent 70%),#15123a;color:#f3f1ff}
+body.auth header{display:none}
+body.auth .w{max-width:none;padding:0}
+.stage{min-height:100vh;min-height:100svh;max-width:1180px;margin:0 auto;padding:clamp(20px,4vw,56px);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,410px);gap:clamp(24px,5vw,80px);align-items:center}
+.mark{display:flex;align-items:center;gap:10px;font:700 20px var(--serif)}
+.hero h1{font:700 clamp(32px,4.8vw,56px)/1.06 var(--serif);letter-spacing:-.012em;margin:22px 0 14px}
+.hero h1 span{display:block}
+.sub{color:#cfcbf3;font-size:17px;line-height:1.55;max-width:44ch;margin:0}
+.hint{color:#a9a4dc;font-size:13px;margin:14px 0 0;max-width:52ch}
+.podium{--rx:0deg;--ry:0deg;display:flex;align-items:flex-end;gap:10px;max-width:500px;margin-top:34px;border-bottom:2px solid rgba(255,255,255,.14)}
+.blk small{font-size:inherit}
+.pd{flex:1;display:flex;flex-direction:column;align-items:center}
+.pd.g{--d:148px;--m1:#f6d56a;--m2:#b98a12;--m3:#fff0b3;--edge:#9a7209}
+.pd.s{--d:104px;--m1:#eef1f7;--m2:#8793a9;--m3:#ffffff;--edge:#6e7a90}
+.pd.b{--d:104px;--m1:#e5a870;--m2:#8a4f22;--m3:#f8cfa3;--edge:#6d3b17}
+.pd .medal{width:var(--d);height:var(--d);margin-bottom:8px;perspective:640px;animation:drop .9s cubic-bezier(.2,.75,.25,1) both}
+.pd.b .medal{animation-delay:.05s}.pd.s .medal{animation-delay:.3s}.pd.g .medal{animation-delay:.55s}
+.tilt{width:100%;height:100%;transform-style:preserve-3d;transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .18s ease-out}
+.coin{position:relative;width:100%;height:100%;transform-style:preserve-3d}
+.pd.g .coin{animation:spin 18s linear 1.6s infinite}
+.coin i{position:absolute;inset:0;border-radius:50%;background:var(--edge)}
+.coin .fc,.coin .bk{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;display:grid;place-items:center;background:conic-gradient(from 210deg,var(--m1),var(--m2),var(--m3),var(--m2),var(--m1))}
+.coin .fc{transform:translateZ(5px)}.coin .bk{transform:rotateY(180deg) translateZ(5px)}
+.coin .fc::before,.coin .bk::before{content:"";position:absolute;inset:9%;border-radius:50%;border:2px solid rgba(255,255,255,.55);box-shadow:inset 0 0 0 2px rgba(0,0,0,.12)}
+.coin span{font-size:calc(var(--d)*.2);letter-spacing:.04em;color:rgba(50,30,0,.78);text-shadow:0 1px 0 rgba(255,255,255,.55)}
+.blk{width:100%;border-radius:8px 8px 0 0;padding:12px 6px 0;text-align:center;background:linear-gradient(#3b3590,#262163);box-shadow:inset 0 1px 0 rgba(255,255,255,.18);color:#f3f1ff}
+.blk b{display:block;font:700 17px var(--serif)}.blk span{display:block;font-size:12px;color:#bdb8ee;margin-top:2px}
+.pd.g .blk{height:128px}.pd.s .blk{height:94px}.pd.b .blk{height:68px}
+.authcard{color:var(--tx);max-width:410px;width:100%;justify-self:end;margin:0;box-shadow:0 24px 60px rgba(5,4,30,.55)}
+.authcard h2{font-family:var(--serif);font-size:24px}
+@keyframes drop{from{transform:translateY(-160px);opacity:0}to{transform:none;opacity:1}}
+@keyframes spin{to{transform:rotateY(360deg)}}
+@media(max-width:860px){
+.stage{grid-template-columns:1fr;gap:24px;align-items:start;padding:20px 16px 32px}
+.authcard{justify-self:stretch;max-width:none}
+.pd.g{--d:104px}.pd.s,.pd.b{--d:74px}
+.pd.g .blk{height:92px}.pd.s .blk{height:68px}.pd.b .blk{height:50px}
+.blk b{font-size:15px}.blk span{font-size:11px}
+.podium{margin-top:22px;max-width:380px}.hint{display:none}.sub{font-size:16px}.ap{display:none}}
+@media(prefers-reduced-motion:reduce){.pd .medal,.pd.g .coin{animation:none}.tilt{transition:none}#toast{transition:none}}
 </style></head><body><div class="w"><header><div class="br">🏅 Talent<span>os</span></div><div id="hd"></div></header><div id="app"></div></div>
-<datalist id="dl-city"></datalist><datalist id="dl-sk"></datalist><datalist id="dl-rl"></datalist><datalist id="dl-ar"></datalist>
+<div id="toast" role="status" aria-live="polite"></div>
+<datalist id="dl-sk"></datalist><datalist id="dl-rl"></datalist><datalist id="dl-ar"></datalist>
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -52,11 +127,29 @@ const SUG={'dl-sk':['JavaScript','TypeScript','Python','Java','C#','PHP','SQL','
 const EMPTY=()=>({uf:'',city:'',phone:'',link:'',summary:'',edu:'Ensino médio',eng:'Nenhum',avail:'Imediata',salary:'',skills:[],exps:[],certs:[]});
 const newJ=()=>({title:'',area:'',desc:'',skills:[],minYears:0,minEdu:'Ensino médio',uf:'',city:'',mode:'Presencial',qs:[]});
 let S=null,jobs=[],apps=[],cands=[],role='cand',mode='login',tab='',P=null,J=null,sel=null,applying=null,flt='all',pool=false,sec={},pend=null,rtok='',note='',team=[],teamErr='';
+const STG=['Recebida','Triagem','Entrevista','Proposta','Aprovado','Recusado'],MSTG=STG.slice(1),STEPS=STG.slice(0,5);
+const defF={q:'',uf:'',mode:'',area:'',min:0,sort:'match'};
+let F={...defF},X={q:'',where:'',src:'',items:null,total:0,sources:[],loading:false,err:''},NT=null,MG=null,MGerr='',IG=null,IGerr='',IGmsg='',mv=null,mvInfo={date:'',time:'',place:''},lastMv={},stF='all',toastT=0,xT=0,xSeq=0;
+const fmtD=t=>new Date(t).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+const fsz=n=>n<1048576?Math.max(1,Math.round(n/1024))+' KB':(n/1048576).toFixed(1).replace('.',',')+' MB';
+const fillT=(t,v)=>String(t).replace(/\{(\w+)\}/g,(m,k)=>k in v?v[k]:m);
+function toast(m){const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3800)}
+function setBell(){const b=$('#bn');if(b){b.textContent=S.unread||0;b.hidden=!S.unread}const t=$('#tb-avisos');if(t)t.textContent='Avisos'+(S.unread?` (${S.unread})`:'')}
+function resetAll(){S=null;P=J=null;jobs=[];apps=[];cands=[];NT=null;MG=null;IG=null;team=[];X.items=null;F={...defF};mv=null;lastMv={};stF='all';sel=null;applying=null;sec={}}
+const tabsHtml=t=>`<div class="tabs" role="tablist">${t.map(x=>`<button role="tab" ${x[0]==='avisos'?'id="tb-avisos"':''} aria-selected="${tab===x[0]}" class="${tab===x[0]?'on':''}" onclick="goTab('${x[0]}')">${x[1]}</button>`).join('')}</div>`;
+async function syncRec(){try{const[j,a,c]=await Promise.all([api('GET','/jobs'),api('GET','/apps').catch(()=>apps),api('GET','/candidates').catch(()=>cands)]);jobs=j;apps=a;cands=c;S=await api('GET','/me');if(!mv)render()}catch(e){}}
+async function syncVagas(){if(S.role==='rec')return syncRec();try{[jobs,apps]=await Promise.all([api('GET','/jobs'),api('GET','/apps')]);if(tab==='vagas'&&!applying)render()}catch(e){}}
+function goTab(t){tab=t;applying=null;sel=null;mv=null;if(t==='nova')J=J||newJ();render();
+if(t==='ext'&&!X.items)loadExt();if(t==='avisos')loadAv();if(t==='equipe')loadTeam();if(t==='msgs')loadMsgs();if(t==='integ')loadInteg();if(t==='cands')refreshApps();if(t==='vagas')syncVagas()}
 async function api(m,u,b){const r=await fetch('/api'+u,{method:m,credentials:'same-origin',headers:{'Content-Type':'application/json','X-Requested-With':'talentos'},body:b?JSON.stringify(b):undefined});
-const d=await r.json().catch(()=>({}));if(r.status===401&&S&&u!=='/me'){S=null;jobs=[];apps=[];cands=[];render()}if(!r.ok)throw new Error(d.error||'Erro de comunicação com o servidor.');return d}
+const d=await r.json().catch(()=>({}));if(r.status===401&&S&&u!=='/me'){resetAll();render()}if(!r.ok)throw new Error(d.error||'Erro de comunicação com o servidor.');return d}
 const clone=o=>JSON.parse(JSON.stringify(o));
+const NC=()=>({name:'',inst:'',type:'Curso',status:'Concluído',hours:'',start:'',end:'',link:''}),NE=()=>({role:'',co:'',years:0,start:'',end:'',desc:''});
+const norm=p=>{p.notifyEmail=p.notifyEmail!==false;p.courses=p.courses||[];(p.certs||[]).forEach(n=>p.courses.push({...NC(),name:n,type:'Certificação'}));p.certs=[];p.exps=p.exps||[];return p};
+const ymf=v=>v?v.slice(5)+'/'+v.slice(0,4):'',per=(a,b,cur)=>a||b?[ymf(a),b?ymf(b):cur].filter(Boolean).join(' – '):'';
+const CTY=['Curso','Certificação','Workshop/Treinamento','Técnico','Graduação','Pós-graduação','Outro'],CST=['Concluído','Em andamento'];
 const yrs=p=>(p.exps||[]).reduce((a,e)=>a+(+e.years||0),0);
-const score=p=>Math.min(yrs(p),12)*3+Math.min(p.skills.length,12)*3+(EDU[p.edu]||0)+(ENG[p.eng]||0)+Math.min(p.certs.length,5)*3;
+const score=p=>Math.min(yrs(p),12)*3+Math.min(p.skills.length,12)*3+(EDU[p.edu]||0)+(ENG[p.eng]||0)+Math.min((p.courses||[]).length+(p.certs||[]).length,5)*3;
 const TH=[[70,'Ouro','🥇'],[35,'Prata','🥈'],[10,'Bronze','🥉']];
 function badge(sc){const t=TH.find(x=>sc>=x[0]);return t?{n:t[1],e:t[2]}:{n:'Nenhuma',e:'🔹'}}
 const pill=sc=>{const b=badge(sc);return`<span class="bd ${b.n}">${b.e} ${b.n==='Nenhuma'?'Iniciante':b.n}</span>`};
@@ -68,29 +161,42 @@ const lc=j.mode==='Remoto'||!j.uf?1:p.uf===j.uf?((p.city||'').toLowerCase()===(j
 return Math.round((sk*.45+ex*.2+ed*.15+Math.min(score(p)/70,1)*.1+lc*.1)*100)}
 const place=o=>[o.city,o.uf].filter(Boolean).join('/')||'—';
 const CC={};
-async function fillCities(uf){const dl=$('#dl-city');if(!dl||!UF[uf])return;let l=CC[uf];
-if(!l){try{const r=await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios?orderBy=nome`);l=(await r.json()).map(c=>c.nome)}catch(e){l=[UF[uf][1]]}CC[uf]=l}
-dl.innerHTML=l.map(c=>`<option value="${esc(c)}">`).join('')}
+async function fillCities(uf){if(!$('#city')||!UF[uf])return;const c=S.role==='cand',O=c?P:J,n=c?'P':'J';let l=CC[uf];
+if(!l){try{const r=await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios?orderBy=nome`);if(!r.ok)throw 0;l=(await r.json()).map(x=>x.nome);CC[uf]=l}catch(e){l=null}}
+const el=$('#city');if(!el||!O||O.uf!==uf)return;
+if(!l){el.outerHTML=`<input id="city" value="${esc(O.city)}" placeholder="Digite a cidade" onchange="${n}.city=this.value">`;return}
+if(O.city&&!l.includes(O.city))l=[O.city,...l];
+el.innerHTML='<option value="">Selecione a cidade</option>'+l.map(x=>`<option${x===O.city?' selected':''}>${esc(x)}</option>`).join('')}
 async function refresh(){jobs=await api('GET','/jobs');if(S.role==='rec')[apps,cands]=await Promise.all([api('GET','/apps').catch(()=>[]),api('GET','/candidates').catch(()=>[])]);else{apps=await api('GET','/apps');cands=[]}}
 async function init(){for(const k in SUG)$('#'+k).innerHTML=SUG[k].map(x=>`<option value="${x}">`).join('');
 if(location.hash.startsWith('#reset=')){rtok=location.hash.slice(7);mode='reset';history.replaceState(null,'',location.pathname)}
 if(!rtok){try{S=await api('GET','/me');await refresh()}catch(e){S=null}}go()}
-function go(){if(S){tab=S.role==='cand'?'perfil':'vagas';if(S.role==='cand')P=clone(S.p);sel=null;applying=null}render()}
-function render(){
-$('#hd').innerHTML=S?`<span class="mu">${esc(S.name)} · ${S.role==='rec'?'Recrutador · '+esc(S.company.name)+' · plano '+esc(S.company.limits.name)+' ('+S.company.jobsOpen+'/'+S.company.limits.jobs+' vagas)':'Candidato'}</span> <button class="sm" onclick="out()">Sair</button>`:'';
+function go(){if(S){tab=S.role==='cand'?'perfil':'vagas';if(S.role==='cand')P=norm(clone(S.p));sel=null;applying=null}render()}
+function render(){document.body.classList.toggle('auth',!S);
+$('#hd').innerHTML=S?`${S.role==='cand'?`<button class="bell" onclick="goTab('avisos')" aria-label="Avisos"><span aria-hidden="true">🔔</span><i id="bn"${S.unread?'':' hidden'}>${S.unread||0}</i></button> `:''}<span class="mu">${esc(S.name)} · ${S.role==='rec'?'Recrutador · '+esc(S.company.name)+' · plano '+esc(S.company.limits.name)+' ('+S.company.jobsOpen+'/'+S.company.limits.jobs+' vagas)':'Candidato'}</span> <button class="sm" onclick="out()">Sair</button>`:'';
 $('#app').innerHTML=!S?vAuth():S.role==='cand'?vCand():vRec();
 fillCities(S?.role==='cand'&&tab==='perfil'?P.uf:tab==='nova'&&J?J.uf:'')}
-async function out(){try{await api('POST','/logout')}catch(e){}S=null;P=J=null;jobs=[];apps=[];cands=[];render()}
+async function out(){try{await api('POST','/logout')}catch(e){}resetAll();render()}
 const er=m=>{const e=$('#er');e.className='err';e.textContent=m};
+function setR(r){const k=['nm','em','pw'],v=k.map(i=>$('#'+i)?.value||'');role=r;note='';render();k.forEach((i,n)=>{const e=$('#'+i);if(e)e.value=v[n]})}
+function startReg(r){role=r;mode='reg';pend=null;note='';render()}
 function go2(m){mode=m;pend=null;note='';render()}
+const STAR={b:'★',s:'★★',g:'★★★'},LAY=Array.from({length:9},(_,i)=>`<i style="transform:translateZ(${i-4}px)"></i>`).join('');
+const podium=()=>[['Prata','s'],['Ouro','g'],['Bronze','b']].map(([n,k])=>`<div class="pd ${k}"><div class="medal" aria-hidden="true"><div class="tilt"><div class="coin">${LAY}<div class="fc"><span>${STAR[k]}</span></div><div class="bk"><span>${STAR[k]}</span></div></div></div></div><div class="blk"><b>${n}</b><span><small class="ap">a partir de </small>${TH.find(t=>t[1]===n)[0]} pontos</span></div></div>`).join('');
 function vAuth(){const r=mode==='reg',em='<label>E-mail<input id="em" type="email" autocomplete="email" maxlength="120"></label><br>';
 const pw=l=>`<label>${l}<input id="pw" type="password" maxlength="128" autocomplete="${mode==='login'?'current-password':'new-password'}"></label><br>`;
 const T={login:'Entrar',reg:'Criar conta',forgot:'Recuperar senha',reset:'Nova senha'}[mode],B={login:'Entrar',reg:'Cadastrar',forgot:'Enviar link',reset:'Salvar nova senha'}[mode];
 const f=pend?'<label>Código de 6 dígitos do app autenticador (ou código de recuperação)<input id="c2" inputmode="numeric" autocomplete="one-time-code" maxlength="20"></label><br>':mode==='forgot'?em:mode==='reset'?pw('Nova senha (10+ caracteres, com letras e números)'):
-(r?`<div class="seg"><button class="${role==='cand'?'on':''}" onclick="role='cand';render()">Sou candidato</button><button class="${role==='rec'?'on':''}" onclick="role='rec';render()">Sou recrutador</button></div><label>Nome<input id="nm" maxlength="80"></label><br>`:'')+em+pw('Senha'+(r?' (10+ caracteres, com letras e números)':''))+(r&&role==='rec'?'<label>Nome da empresa<input id="co" maxlength="80"></label><br><label>Código de convite da plataforma<input id="cd" autocomplete="off"></label><br>':'');
-return`<div class="card" style="max-width:420px;margin:20px auto"><h2>${pend?'Verificação em duas etapas':T}</h2>${f}<div class="${note?'mu':'err'}" id="er">${esc(note)}</div>
+(r?`<div class="seg"><button class="${role==='cand'?'on':''}" onclick="setR('cand')">Sou candidato</button><button class="${role==='rec'?'on':''}" onclick="setR('rec')">Sou recrutador</button></div><label>Nome<input id="nm" maxlength="80"></label><br>`:'')+em+pw('Senha'+(r?' (10+ caracteres, com letras e números)':''))+(r&&role==='rec'?'<label>Nome da empresa<input id="co" maxlength="80"></label><br><label>Código de convite da plataforma<input id="cd" autocomplete="off"></label><br>':'');
+const card=`<div class="card authcard"><h2>${pend?'Verificação em duas etapas':T}</h2>${f}<div class="${note?'mu':'err'}" id="er">${esc(note)}</div>
 <button class="pri" style="width:100%" onclick="auth()">${pend?'Confirmar':B}</button>
-<p class="mu" style="text-align:center">${mode==='login'&&!pend?`<a href="#" onclick="go2('reg');return false">Criar conta</a> · <a href="#" onclick="go2('forgot');return false">Esqueci minha senha</a>`:`<a href="#" onclick="go2('login');return false">Voltar ao login</a>`}</p></div>`}
+<p class="mu" style="text-align:center">${mode==='login'&&!pend?`<a href="#" onclick="go2('reg');return false">Criar conta</a> · <a href="#" onclick="go2('forgot');return false">Esqueci minha senha</a>`:`<a href="#" onclick="go2('login');return false">Voltar ao login</a>`}</p>
+${mode==='login'&&!pend?`<p class="mu" style="text-align:center;margin-bottom:0">Vai contratar? <a href="#" onclick="startReg('rec');return false">Cadastre sua empresa</a></p>`:''}</div>`;
+return`<section class="stage"><div class="hero"><div class="mark"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#e0a81c"/><path d="M12 5.5l1.9 4 4.4.5-3.3 3 .9 4.3L12 15l-3.9 2.3.9-4.3-3.3-3 4.4-.5z" fill="#15123a"/></svg>Talentos</div>
+<h1><span>Seu talento vira insígnia.</span><span>A insígnia abre portas.</span></h1>
+<p class="sub">Monte seu perfil, ganhe bronze, prata ou ouro e seja encontrado pelas empresas que procuram o que você faz.</p>
+<div class="podium">${podium()}</div>
+<p class="hint">Os pontos vêm de experiência, habilidades, escolaridade, inglês e cursos.</p></div>${card}</section>`}
 async function auth(){try{
 if(mode==='forgot'){await api('POST','/forgot',{email:$('#em').value});note='Se o e-mail estiver cadastrado, enviamos um link de recuperação (válido por 30 min). Confira também o spam.';mode='login';return render()}
 if(mode==='reset'){await api('POST','/reset',{token:rtok,password:$('#pw').value});rtok='';mode='login';note='Senha alterada! Entre com a nova senha.';return render()}
@@ -102,24 +208,32 @@ pend=null;note='';S=d.user;await refresh();go()}catch(e){er(e.message)}}
 const inp=(l,k,t='text',ex='')=>`<label>${l}<input type="${t}" ${ex} value="${esc(P[k])}" onchange="P.${k}=this.value"></label>`;
 const sl=(l,k,o)=>`<label>${l}<select onchange="P.${k}=this.value">${o.map(x=>`<option${P[k]===x?' selected':''}>${x}</option>`).join('')}</select></label>`;
 const locF=o=>{const O=o==='P'?P:J;return`<label>Estado<select onchange="${o}.uf=this.value;${o}.city='';render()"><option value="">Selecione</option>${Object.entries(UF).map(([k,v])=>`<option value="${k}"${O.uf===k?' selected':''}>${k} — ${v[0]}</option>`).join('')}</select></label>
-<label>Cidade<input list="dl-city" value="${esc(O.city)}" placeholder="${O.uf?'Comece a digitar':'Escolha o estado'}" ${O.uf?'':'disabled'} onchange="${o}.city=this.value"></label>`};
+<label>Cidade<select id="city" ${O.uf?'':'disabled'} onchange="${o}.city=this.value"><option value="">${O.uf?'Carregando cidades…':'Escolha o estado primeiro'}</option>${O.city?`<option selected>${esc(O.city)}</option>`:''}</select></label>`};
 const chips=(o,k)=>{const O=o==='P'?P:J;return`<div class="chips">${O[k].map((s,i)=>`<span class="chip">${esc(s)}<b onclick="${o}.${k}.splice(${i},1);render()">×</b></span>`).join('')}</div><input ${k==='skills'?'list="dl-sk"':''} placeholder="Digite ou escolha e pressione Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();tag('${o}','${k}',this)}">`};
 function tag(o,k,el){const v=el.value.trim(),O=o==='P'?P:J;if(v&&!O[k].some(x=>x.toLowerCase()===v.toLowerCase()))O[k].push(v);render()}
 function mk(e){const d=e.value.replace(/\D/g,'').slice(0,11);e.value=d.length>10?d.replace(/(\d\d)(\d{5})(\d{4})/,'($1) $2-$3'):d.length>6?d.replace(/(\d\d)(\d{4})(\d*)/,'($1) $2-$3'):d.length>2?d.replace(/(\d\d)(\d*)/,'($1) $2'):d}
 /* ---------- candidato ---------- */
-function vCand(){const t=[['perfil','Meu perfil'],['vagas','Vagas'],['cands','Candidaturas'],['seg','Segurança']];
-return`<div class="tabs">${t.map(x=>`<button class="${tab===x[0]?'on':''}" onclick="tab='${x[0]}';applying=null;render()">${x[1]}</button>`).join('')}</div>`+(tab==='perfil'?vPerfil():tab==='vagas'?vVagas():tab==='seg'?vSeg():vMinhas())}
+function vCand(){const t=[['perfil','Meu perfil'],['vagas','Vagas abertas'],['ext','Outras plataformas'],['cands','Candidaturas'],['avisos','Avisos'+(S.unread?` (${S.unread})`:'')],['seg','Segurança']];
+return tabsHtml(t)+(tab==='perfil'?vPerfil():tab==='vagas'?vVagas():tab==='ext'?vExt():tab==='avisos'?vAv():tab==='seg'?vSeg():vMinhas())}
+const sopt=(arr,v)=>arr.map(x=>`<option${v===x?' selected':''}>${esc(x)}</option>`).join('');
+const expF=(e,i)=>`<div class="it"><div class="g"><label>Cargo<input list="dl-rl" value="${esc(e.role)}" maxlength="80" onchange="P.exps[${i}].role=this.value"></label><label>Empresa<input value="${esc(e.co)}" maxlength="80" onchange="P.exps[${i}].co=this.value"></label><label>Início<input type="month" placeholder="AAAA-MM" value="${esc(e.start)}" onchange="P.exps[${i}].start=this.value;expY(${i})"></label><label>Término (vazio = atual)<input type="month" placeholder="AAAA-MM" value="${esc(e.end)}" onchange="P.exps[${i}].end=this.value;expY(${i})"></label><label>Anos de experiência<input type="number" min="0" step="0.5" value="${esc(e.years)}" onchange="P.exps[${i}].years=this.value"></label></div><label>Principais atividades e resultados<textarea rows="2" maxlength="400" onchange="P.exps[${i}].desc=this.value">${esc(e.desc)}</textarea></label><div style="text-align:right;margin-top:6px"><button class="sm" onclick="P.exps.splice(${i},1);render()">Remover</button></div></div>`;
+function expY(i){const e=P.exps[i];if(e.start){const[a,b]=e.start.split('-').map(Number),n=new Date(),[c,d]=e.end?e.end.split('-').map(Number):[n.getFullYear(),n.getMonth()+1];e.years=Math.max(0,Math.round((((c-a)*12+(d-b))/12)*10)/10)}render()}
+const crsF=(c,i)=>`<div class="it"><div class="g"><label>Nome do curso / certificação<input value="${esc(c.name)}" maxlength="120" onchange="P.courses[${i}].name=this.value"></label><label>Instituição<input value="${esc(c.inst)}" maxlength="120" onchange="P.courses[${i}].inst=this.value"></label><label>Tipo<select onchange="P.courses[${i}].type=this.value">${sopt(CTY,c.type)}</select></label><label>Situação<select onchange="P.courses[${i}].status=this.value">${sopt(CST,c.status)}</select></label><label>Carga horária (horas)<input type="number" min="0" value="${esc(c.hours)}" onchange="P.courses[${i}].hours=this.value"></label><label>Início<input type="month" placeholder="AAAA-MM" value="${esc(c.start)}" onchange="P.courses[${i}].start=this.value"></label><label>Conclusão (ou previsão)<input type="month" placeholder="AAAA-MM" value="${esc(c.end)}" onchange="P.courses[${i}].end=this.value"></label><label>Link ou código do certificado<input type="url" maxlength="200" placeholder="https://" value="${esc(c.link)}" onchange="P.courses[${i}].link=this.value"></label></div><div style="text-align:right;margin-top:6px"><button class="sm" onclick="P.courses.splice(${i},1);render()">Remover</button></div></div>`;
 function vPerfil(){const sc=score(P),b=badge(sc),nx=[...TH].reverse().find(x=>sc<x[0]);
 return`<div class="card"><div class="row"><div><div class="big">${b.e}</div><h2>${b.n==='Nenhuma'?'Sem insígnia ainda':'Insígnia '+b.n}</h2></div><div class="pct">${sc} pts</div></div>
 <div class="bar"><i style="width:${Math.min(sc/70*100,100)}%"></i></div>
 <div class="mu">${nx?`Faltam ${nx[0]-sc} pts para ${nx[1]}. `:'Nível máximo! '}Pontos vêm de experiência, habilidades, escolaridade, inglês e certificações.</div></div>
-<div class="card"><h3>Dados e formação</h3><div class="g">${locF('P')}<label>Telefone<input type="tel" inputmode="numeric" placeholder="(11) 91234-5678" value="${esc(P.phone)}" oninput="mk(this)" onchange="P.phone=this.value"></label>${inp('LinkedIn / Portfólio (URL)','link','url')}${sl('Escolaridade','edu',Object.keys(EDU))}${sl('Inglês','eng',Object.keys(ENG))}${sl('Disponibilidade','avail',AV)}${inp('Pretensão salarial (R$)','salary','number','min="0" step="100"')}</div>
+<div class="card"><h3>Currículo</h3>${S.cv?`<div class="row"><div><b>${esc(S.cv.name)}</b><div class="mu">${S.cv.type.toUpperCase()} · ${fsz(S.cv.size)} · enviado em ${fmtD(S.cv.t)}</div></div><div><button class="sm" onclick="dlCV()">Baixar</button> <button class="sm" onclick="rmCV()">Remover</button></div></div>`:'<p class="mu" style="margin-top:0">Nenhum currículo enviado ainda.</p>'}
+<label class="btn-file">${S.cv?'Trocar currículo':'Enviar currículo'}<input class="vh" type="file" id="cvf" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="upCV(this)"></label>
+<p class="mu">PDF ou Word (.docx), até 3 MB. As empresas das vagas em que você se candidatar podem baixar o arquivo. Se você autorizar o banco de talentos, outras empresas também podem.</p><div class="err" id="cve" role="alert"></div></div>
+<div class="card"><h3>Dados e formação</h3><div class="g">${locF('P')}<label>Telefone<input type="tel" inputmode="numeric" placeholder="(11) 91234-5678" value="${esc(P.phone)}" oninput="mk(this)" onchange="P.phone=this.value"></label>${inp('LinkedIn / Portfólio (URL)','link','url')}${sl('Escolaridade','edu',Object.keys(EDU))}${sl('Inglês','eng',Object.keys(ENG))}${sl('Disponibilidade','avail',AV)}${sl('Modalidade preferida','mode',['Qualquer',...MD])}${inp('Cargo desejado','want','text','maxlength="80" list="dl-rl"')}${inp('Pretensão salarial (R$)','salary','number','min="0" step="100"')}</div>
 <label>Resumo profissional<textarea rows="3" onchange="P.summary=this.value">${esc(P.summary)}</textarea></label></div>
-<div class="card"><h3>Experiências</h3>${P.exps.map((e,i)=>`<div class="g3"><label>Cargo<input list="dl-rl" value="${esc(e.role)}" onchange="P.exps[${i}].role=this.value"></label><label>Empresa<input value="${esc(e.co)}" onchange="P.exps[${i}].co=this.value"></label><label>Anos<input type="number" min="0" value="${esc(e.years)}" onchange="P.exps[${i}].years=this.value"></label><button class="sm" onclick="P.exps.splice(${i},1);render()">✕</button></div>`).join('')}<button class="sm" onclick="P.exps.push({role:'',co:'',years:1});render()">+ Experiência</button></div>
-<div class="card"><h3>Habilidades</h3>${chips('P','skills')}</div><div class="card"><h3>Certificações e cursos</h3>${chips('P','certs')}</div>
-<div class="card"><h3>Privacidade (LGPD)</h3><label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--tx)"><input type="checkbox" style="width:auto;margin:0" ${P.open?'checked':''} onchange="P.open=this.checked"> Permitir que recrutadores me encontrem no banco de talentos</label><p class="mu">Seus dados só são vistos por recrutadores quando você se candidata ou autoriza acima. Lembre de salvar o perfil.</p><button class="sm" onclick="exportData()">Baixar meus dados</button> <button class="sm" onclick="delAccount()">Excluir minha conta</button></div>
+<div class="card"><h3>Experiências</h3>${P.exps.map(expF).join('')}<button class="sm" onclick="P.exps.push(NE());render()">+ Experiência</button></div>
+<div class="card"><h3>Habilidades</h3>${chips('P','skills')}</div><div class="card"><h3>Cursos e certificações</h3><p class="mu" style="margin-top:0">Informe nome, instituição, carga horária e período. Contam pontos na insígnia (até 5).</p>${P.courses.map(crsF).join('')}<button class="sm" onclick="P.courses.push(NC());render()">+ Curso ou certificação</button></div>
+<div class="card"><h3>Privacidade (LGPD)</h3><label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--tx)"><input type="checkbox" style="width:auto;margin:0" ${P.open?'checked':''} onchange="P.open=this.checked"> Permitir que recrutadores me encontrem no banco de talentos</label>
+<label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--tx);margin-top:8px"><input type="checkbox" style="width:auto;margin:0" ${P.notifyEmail?'checked':''} onchange="P.notifyEmail=this.checked"> Receber e-mail quando a minha candidatura mudar de etapa</label><p class="mu">Seus dados só são vistos por recrutadores quando você se candidata ou autoriza acima. Lembre de salvar o perfil.</p><button class="sm" onclick="exportData()">Baixar meus dados</button> <button class="sm" onclick="delAccount()">Excluir minha conta</button></div>
 <button class="pri" onclick="saveP()">Salvar perfil</button>`}
-async function saveP(){try{S=await api('PUT','/profile',P);P=clone(S.p);render();alert('Perfil salvo!')}catch(e){alert(e.message)}}
+async function saveP(){try{S=await api('PUT','/profile',P);P=norm(clone(S.p));render();alert('Perfil salvo!')}catch(e){alert(e.message)}}
 function vSeg(){let h='<div class="card"><h3>Verificação em duas etapas (2FA)</h3>';
 if(sec.codes)h+=`<p><b>Guarde seus códigos de recuperação.</b> Cada um vale uma vez e não será mostrado de novo:</p><div class="chips">${sec.codes.map(c=>`<span class="chip"><code>${esc(c)}</code></span>`).join('')}</div><button class="sm" onclick="sec={};render()">Já guardei</button>`;
 else if(S.t2)h+=`<p>✅ Ativada. Para desativar, informe sua senha e um código atual:</p><div class="g"><label>Senha<input id="dp" type="password" autocomplete="current-password"></label><label>Código<input id="dc" inputmode="numeric" maxlength="20"></label></div><button class="sm" onclick="dis2()">Desativar 2FA</button>`;
@@ -136,16 +250,65 @@ if(q.type==='long')return L+`<textarea name="${n}" rows="3"></textarea></label>`
 if(q.type==='choice')return L+`<select name="${n}">${(q.opts.length?q.opts:['Sim','Não']).map(o=>`<option>${esc(o)}</option>`).join('')}</select></label>`;
 if(q.type==='yesno')return L+`<select name="${n}"><option>Sim</option><option>Não</option></select></label>`;
 return L+`<input name="${n}" type="${{text:'text',number:'number',date:'date',url:'url'}[q.type]}"></label>`}
-function vVagas(){const p=S.p;return jobs.map(j=>{const mine=apps.find(a=>a.jobId===j.id),have=p.skills.map(s=>s.toLowerCase());
-return`<div class="card"><div class="row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · mín. ${j.minYears} ano(s) · ${esc(j.minEdu)}</span></div><div class="pct">${match(p,j)}%<div class="mu" style="font-weight:400">compatível</div></div></div>
+function jobList(){const p=S.p,q=F.q.trim().toLowerCase();
+let l=jobs.filter(j=>(!F.uf||j.uf===F.uf)&&(!F.mode||j.mode===F.mode)&&(!F.area||j.area===F.area)).map(j=>({j,m:match(p,j)})).filter(x=>x.m>=F.min&&(!q||[x.j.title,x.j.company,x.j.area,x.j.desc,x.j.city,...x.j.skills].join(' ').toLowerCase().includes(q)));
+l.sort(F.sort==='new'?(a,b)=>(b.j.created||0)-(a.j.created||0):(a,b)=>b.m-a.m);
+const have=p.skills.map(s=>s.toLowerCase());
+return`<p class="mu" aria-live="polite">${l.length} de ${jobs.length} vaga(s)</p>`+(l.map(({j,m})=>{const mine=apps.find(a=>a.jobId===j.id);
+return`<div class="card"><div class="row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${esc(j.company)} · ${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · mín. ${j.minYears} ano(s) · ${esc(j.minEdu)}</span></div><div class="pct">${m}%<div class="mu" style="font-weight:400">compatível</div></div></div>
 <p>${esc(j.desc)}</p><div class="chips">${j.skills.map(s=>`<span class="chip ${have.includes(s.toLowerCase())?'ok':''}">${esc(s)}</span>`).join('')}</div>
-${mine?`<span class="mu">✓ Candidatura enviada — status: <b>${esc(mine.status)}</b></span>`:applying===j.id?`<div style="margin-top:10px"><h3>Formulário da vaga</h3>${j.qs.map(qf).join('<br>')}<br><button class="pri" onclick="apply('${j.id}')">Enviar candidatura</button> <button onclick="applying=null;render()">Cancelar</button></div>`:`<button class="pri" onclick="applying='${j.id}';render()">Candidatar-se</button>`}</div>`}).join('')||'<div class="card mu">Ainda não há vagas.</div>'}
-async function apply(id){const j=jobs.find(x=>x.id===id);try{await api('POST','/apply',{jobId:id,answers:j.qs.map((q,i)=>$(`[name=q${i}]`).value)});apps=await api('GET','/apps');applying=null;render()}catch(e){alert(e.message)}}
-function vMinhas(){return apps.length?apps.map(a=>{const j=jobs.find(x=>x.id===a.jobId);return`<div class="card row"><div><b>${esc(j?.title)}</b><div class="mu">Enviada em ${esc(a.date)}</div></div><span class="chip">${esc(a.status)}</span></div>`}).join(''):'<div class="card mu">Você ainda não se candidatou.</div>'}
+${mine?`<span class="mu">✓ Candidatura enviada. Etapa atual: <b>${esc(mine.status)}</b></span>`:applying===j.id?`<div style="margin-top:10px"><h3>Formulário da vaga</h3>${j.qs.map(qf).join('<br>')}<br><button class="pri" onclick="apply('${j.id}')">Enviar candidatura</button> <button onclick="applying=null;updJobs()">Cancelar</button></div>`:`<button class="pri" onclick="applying='${j.id}';updJobs()">Candidatar-se</button>`}</div>`}).join('')||'<div class="card mu">Nenhuma vaga com esses filtros. Tente remover algum deles.</div>')}
+const updJobs=()=>{const el=$('#jl');if(el)el.innerHTML=jobList()};
+function vVagas(){const ufs=[...new Set(jobs.map(j=>j.uf).filter(Boolean))].sort(),areas=[...new Set(jobs.map(j=>j.area).filter(Boolean))].sort();
+const o=(arr,v,all)=>`<option value="">${all}</option>`+arr.map(x=>`<option value="${esc(x)}"${v===x?' selected':''}>${esc(x)}</option>`).join('');
+return`<div class="card"><div class="g fg"><label>Buscar<input type="search" placeholder="Cargo, empresa ou habilidade" value="${esc(F.q)}" oninput="F.q=this.value;updJobs()"></label>
+<label>Estado<select onchange="F.uf=this.value;updJobs()">${o(ufs,F.uf,'Todos')}</select></label>
+<label>Modalidade<select onchange="F.mode=this.value;updJobs()">${o(MD,F.mode,'Todas')}</select></label>
+<label>Área<select onchange="F.area=this.value;updJobs()">${o(areas,F.area,'Todas')}</select></label>
+<label>Compatibilidade mínima<select onchange="F.min=+this.value;updJobs()">${[0,30,50,70].map(n=>`<option value="${n}"${F.min===n?' selected':''}>${n?n+'% ou mais':'Qualquer'}</option>`).join('')}</select></label>
+<label>Ordenar por<select onchange="F.sort=this.value;updJobs()"><option value="match"${F.sort==='match'?' selected':''}>Mais compatíveis</option><option value="new"${F.sort==='new'?' selected':''}>Mais recentes</option></select></label></div>
+<button class="sm" onclick="F={...defF};render()">Limpar filtros</button></div><div id="jl">${jobList()}</div>`}
+async function apply(id){const j=jobs.find(x=>x.id===id);try{await api('POST','/apply',{jobId:id,answers:j.qs.map((q,i)=>$(`[name=q${i}]`).value)});apps=await api('GET','/apps');applying=null;updJobs();toast('Candidatura enviada. Você será avisado a cada nova etapa.')}catch(e){alert(e.message)}}
+/* ---------- vagas de outras plataformas ---------- */
+const SRCL={'':'Todas',greenhouse:'Greenhouse',lever:'Lever',adzuna:'Adzuna',remotive:'Remotive'};
+const CRED={Remotive:'<a href="https://remotive.com" target="_blank" rel="noopener noreferrer">Remotive</a>',Adzuna:'<a href="https://www.adzuna.com.br" target="_blank" rel="noopener noreferrer">Adzuna</a>'};
+function extList(){if(X.err)return`<div class="card err">${esc(X.err)}</div>`;if(X.items===null||X.loading)return'<div class="card mu">Buscando vagas…</div>';
+if(!X.items.length)return'<div class="card mu">Nenhuma vaga encontrada. Tente outra palavra-chave ou tire os filtros.</div>';
+return`<p class="mu" aria-live="polite">${X.total} vaga(s)${X.total>X.items.length?`, mostrando as ${X.items.length} mais recentes`:''}</p>`+X.items.map(x=>`<div class="card"><div class="row"><div><h3 style="margin:0">${esc(x.title)}</h3><span class="mu">${esc(x.company)}${x.loc?' · 📍 '+esc(x.loc):''}${x.type?' · '+esc(x.type):''}${x.date?' · publicada em '+x.date.split('-').reverse().join('/'):''}</span></div><span class="chip">${esc(x.label)}</span></div>${x.desc?`<p>${esc(x.desc)}${x.desc.length>=300?'…':''}</p>`:''}<a class="btn pri" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">Ver vaga no site de origem</a></div>`).join('')
++`<p class="mu">Fontes: ${X.sources.map(n=>CRED[n]||esc(n)).join(', ')}. A candidatura é feita no site de origem.</p>`}
+const updX=()=>{const el=$('#xl');if(el)el.innerHTML=extList()};
+async function loadExt(){const my=++xSeq;X.loading=true;X.err='';updX();try{const q=new URLSearchParams();if(X.q.trim())q.set('q',X.q.trim());if(X.where.trim())q.set('where',X.where.trim());if(X.src)q.set('src',X.src);
+const d=await api('GET','/external'+(q.toString()?'?'+q:''));if(my!==xSeq)return;X.items=d.items;X.total=d.total;X.sources=d.sources}catch(e){if(my!==xSeq)return;X.err=e.message;X.items=[]}X.loading=false;updX()}
+const debX=()=>{clearTimeout(xT);xT=setTimeout(loadExt,450)};
+function vExt(){return`<div class="card"><div class="g fg"><label>Buscar<input type="search" placeholder="Cargo ou palavra-chave" value="${esc(X.q)}" oninput="X.q=this.value;debX()"></label>
+<label>Cidade ou estado<input type="search" placeholder="Ex.: Belém ou São Paulo" value="${esc(X.where)}" oninput="X.where=this.value;debX()"></label>
+<label>Plataforma<select onchange="X.src=this.value;loadExt()">${Object.entries(SRCL).map(([k,v])=>`<option value="${k}"${X.src===k?' selected':''}>${v}</option>`).join('')}</select></label></div>
+<p class="mu" style="margin-bottom:0">Vagas publicadas em outras plataformas. Ao clicar, você vai para o site de origem para se candidatar.</p></div><div id="xl">${extList()}</div>`}
+/* ---------- avisos e candidaturas ---------- */
+async function loadAv(){try{const d=await api('GET','/notifications');NT=d.items;render();if(d.unread){await api('POST','/notifications/read',{});S.unread=0;setBell()}}catch(e){NT=[];render()}}
+const vAv=()=>NT===null?'<div class="card mu">Carregando…</div>':NT.length?NT.map(n=>`<div class="card nt${n.r?'':' new'}"><div class="row"><b>${esc(n.title)}</b><span class="mu">${fmtD(n.t)}</span></div><pre class="msg">${esc(n.body)}</pre></div>`).join(''):'<div class="card mu">Nenhum aviso por aqui ainda. Quando uma empresa mover a sua candidatura de etapa, você recebe a atualização nesta aba.</div>';
+async function refreshApps(){try{apps=await api('GET','/apps');render()}catch(e){}}
+function vMinhas(){return apps.length?apps.map(a=>{const i=STEPS.indexOf(a.status),rej=a.status==='Recusado';
+return`<div class="card"><div class="row"><div><b>${esc(a.jobTitle||'Vaga')}</b><div class="mu">${esc(a.company||'')}${a.company?' · ':''}enviada em ${esc(a.date)}</div></div>${rej?'<span class="chip no">Processo encerrado</span>':''}</div>
+<ol class="stp${rej?' off':''}">${STEPS.map((s,k)=>`<li class="${!rej&&k<i?'done':!rej&&k===i?'cur':''}">${s}</li>`).join('')}</ol>
+${rej?'<div class="mu">Esta empresa não seguirá com a sua candidatura agora. Continue de olho nas outras vagas.</div>':''}</div>`}).join(''):'<div class="card mu">Você ainda não se candidatou. Veja as vagas abertas e envie a primeira candidatura.</div>'}
+/* ---------- currículo ---------- */
+async function upCV(el){const f=el.files[0];el.value='';const e=$('#cve');if(!f||!e)return;
+const ext=(f.name.split('.').pop()||'').toLowerCase();
+if(!['pdf','docx'].includes(ext)){e.textContent='Envie um arquivo PDF ou Word (.docx).';return}
+if(f.size>3*1024*1024){e.textContent='O arquivo tem '+fsz(f.size)+'. O máximo é 3 MB.';return}
+e.className='mu';e.textContent='Enviando…';
+try{const r=await fetch('/api/cv',{method:'PUT',credentials:'same-origin',headers:{'X-Requested-With':'talentos','Content-Type':'application/octet-stream','X-Filename':encodeURIComponent(f.name)},body:f});
+const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Não foi possível enviar o arquivo.');S=d;render();toast('Currículo enviado')}
+catch(x){const e2=$('#cve');if(e2){e2.className='err';e2.textContent=x.message}}}
+async function dlCV(id){try{const r=await fetch(id?'/api/cv/'+id:'/api/cv',{credentials:'same-origin'});
+if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||'Não foi possível baixar o arquivo.')}
+const b=await r.blob(),m=/filename="([^"]+)"/.exec(r.headers.get('Content-Disposition')||''),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=m?m[1]:'curriculo';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1e4)}catch(e){alert(e.message)}}
+async function rmCV(){if(!confirm('Remover o seu currículo do sistema?'))return;try{S=await api('DELETE','/cv');render();toast('Currículo removido')}catch(e){alert(e.message)}}
 /* ---------- recrutador ---------- */
-const can=k=>({jobs:['admin','rh'],move:['admin','rh','recrutador'],team:['admin']}[k]||[]).includes(S.crole);
-function vRec(){const t=[['vagas','Vagas e ranking'],...(can('jobs')?[['nova','Nova vaga']]:[]),...(can('team')?[['equipe','Equipe']]:[]),['seg','Segurança']];
-return`<div class="tabs">${t.map(x=>`<button class="${tab===x[0]?'on':''}" onclick="tab='${x[0]}';sel=null;if('${x[0]}'==='nova')J=J||newJ();render();if('${x[0]}'==='equipe')loadTeam()">${x[1]}</button>`).join('')}</div>`+(S.req2&&!S.t2?'<div class="card" style="border-color:var(--no)">🔒 Ative a verificação em duas etapas na aba Segurança para acessar os candidatos.</div>':'')+(tab==='seg'?vSeg():tab==='nova'?vNova():tab==='equipe'?vEquipe():sel?vRank():vLista())}
+const can=k=>({jobs:['admin','rh'],move:['admin','rh','recrutador'],team:['admin'],integ:['admin']}[k]||[]).includes(S.crole);
+function vRec(){const t=[['vagas','Vagas e ranking'],...(can('jobs')?[['nova','Nova vaga']]:[]),['msgs','Mensagens'],...(can('integ')?[['integ','Integrações']]:[]),...(can('team')?[['equipe','Equipe']]:[]),['seg','Segurança']];
+return tabsHtml(t)+(S.req2&&!S.t2?'<div class="card" style="border-color:var(--no)">🔒 Ative a verificação em duas etapas na aba Segurança para acessar os candidatos.</div>':'')+(tab==='seg'?vSeg():tab==='nova'?vNova():tab==='equipe'?vEquipe():tab==='msgs'?vMsgs():tab==='integ'?vInteg():sel?vRank():vLista())}
 /* ---------- equipe (somente administrador) ---------- */
 const CR={admin:'Administrador',rh:'RH',recrutador:'Recrutador',gestor:'Gestor (somente leitura)'};
 const crOpts=v=>Object.entries(CR).map(([k,l])=>`<option value="${k}"${v===k?' selected':''}>${l}</option>`).join('');
@@ -161,7 +324,7 @@ ${team.map(u=>`<div class="row" style="padding:10px 0;border-top:1px solid var(-
 async function invite(){try{await api('POST','/team',{name:$('#tn').value,email:$('#te').value,crole:$('#tr').value});S=await api('GET','/me');await loadTeam();const e=$('#er');if(e){e.className='mu';e.textContent='Convite enviado.'}}catch(e){er(e.message)}}
 async function setRole(id,r){try{await api('PATCH','/team/'+id,{crole:r});if(id===S.id)S=await api('GET','/me');await loadTeam()}catch(e){alert(e.message);loadTeam()}}
 async function delMember(id){const u=team.find(x=>x.id===id);if(!u||!confirm('Remover '+u.name+' da equipe? O acesso será encerrado imediatamente.'))return;try{await api('DELETE','/team/'+id);S=await api('GET','/me');await loadTeam()}catch(e){alert(e.message)}}
-function vLista(){return jobs.map(j=>`<div class="card row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${j.status==='open'?'':'🔒 Encerrada · '}${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · ${apps.filter(a=>a.jobId===j.id).length} candidatura(s)</span></div><div><button class="pri" onclick="sel='${j.id}';flt='all';render()">Ver melhores candidatos</button> ${can('jobs')?`<button onclick="toggleJ('${j.id}','${j.status==='open'?'closed':'open'}')">${j.status==='open'?'Encerrar':'Reabrir'}</button>`:''}</div></div>`).join('')||'<div class="card mu">Crie sua primeira vaga.</div>'}
+function vLista(){return jobs.map(j=>`<div class="card row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${j.status==='open'?'':'🔒 Encerrada · '}${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · ${apps.filter(a=>a.jobId===j.id).length} candidatura(s)</span></div><div><button class="pri" onclick="openRank('${j.id}')">Ver melhores candidatos</button> ${can('jobs')?`<button onclick="toggleJ('${j.id}','${j.status==='open'?'closed':'open'}')">${j.status==='open'?'Encerrar':'Reabrir'}</button>`:''}</div></div>`).join('')||'<div class="card mu">Crie sua primeira vaga.</div>'}
 function vNova(){return`<div class="card"><h3>Dados da vaga</h3><div class="g"><label>Título<input list="dl-rl" value="${esc(J.title)}" onchange="J.title=this.value"></label><label>Área<input list="dl-ar" value="${esc(J.area)}" onchange="J.area=this.value"></label>${locF('J')}<label>Modalidade<select onchange="J.mode=this.value">${MD.map(x=>`<option${J.mode===x?' selected':''}>${x}</option>`).join('')}</select></label><label>Anos mínimos de experiência<input type="number" min="0" value="${J.minYears}" onchange="J.minYears=+this.value"></label><label>Escolaridade mínima<select onchange="J.minEdu=this.value">${Object.keys(EDU).map(x=>`<option${J.minEdu===x?' selected':''}>${x}</option>`).join('')}</select></label></div>
 <label>Descrição<textarea rows="3" onchange="J.desc=this.value">${esc(J.desc)}</textarea></label></div>
 <div class="card"><h3>Habilidades exigidas</h3>${chips('J','skills')}</div>
@@ -169,21 +332,81 @@ function vNova(){return`<div class="card"><h3>Dados da vaga</h3><div class="g"><
 <button class="pri" onclick="pub()">Publicar vaga</button>`}
 async function toggleJ(id,st){try{await api('PATCH','/jobs/'+id,{status:st});jobs=await api('GET','/jobs');S=await api('GET','/me');render()}catch(e){alert(e.message)}}
 async function pub(){J.qs=J.qs.filter(q=>q.label.trim());try{await api('POST','/jobs',J);jobs=await api('GET','/jobs');S=await api('GET','/me');J=null;tab='vagas';render()}catch(e){alert(e.message)}}
+function openRank(id){sel=id;flt='all';stF='all';mv=null;render();ensureMsgs();syncRec()}
+async function ensureMsgs(){if(MG)return;try{MG=await api('GET','/messages')}catch(e){MGerr=e.message}}
 function vRank(){const j=jobs.find(x=>x.id===sel);
 let l=apps.filter(a=>a.jobId===sel).map(a=>({u:cands.find(x=>x.id===a.candId),a}));
+const nS=Object.fromEntries(STG.map(s=>[s,l.filter(x=>x.a.status===s).length]));
 if(pool)cands.filter(u=>!l.some(x=>x.u&&x.u.id===u.id)).forEach(u=>l.push({u,a:null}));
-l=l.filter(x=>x.u).map(x=>({...x,m:match(x.u.p,j),sc:score(x.u.p)})).filter(x=>flt==='all'||badge(x.sc).n===flt).sort((a,b)=>b.m-a.m||b.sc-a.sc);
-return`<div class="row"><h2>${esc(j.title)}</h2><button onclick="sel=null;render()">← Voltar</button></div>
-<div class="card row"><div class="tabs" style="margin:0">${['all','Ouro','Prata','Bronze'].map(f=>`<button class="sm ${flt===f?'on':''}" onclick="flt='${f}';render()">${f==='all'?'Todos':f}</button>`).join('')}</div><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" style="width:auto;margin:0" ${pool?'checked':''} onchange="pool=this.checked;render()">Incluir banco de talentos (quem autorizou)</label></div>
-${l.map((x,i)=>{const p=x.u.p,have=p.skills.map(s=>s.toLowerCase());
+l=l.filter(x=>x.u).map(x=>({...x,m:match(x.u.p,j),sc:score(x.u.p)})).filter(x=>(flt==='all'||badge(x.sc).n===flt)&&(stF==='all'||(x.a&&x.a.status===stF))).sort((a,b)=>b.m-a.m||b.sc-a.sc);
+return`<div class="row"><h2>${esc(j.title)}</h2><div><button onclick="syncRec()">Atualizar</button> <button onclick="sel=null;mv=null;render()">← Voltar</button></div></div>
+<div class="card"><div class="row"><div class="tabs" style="margin:0">${['all','Ouro','Prata','Bronze'].map(f=>`<button class="sm ${flt===f?'on':''}" onclick="flt='${f}';render()">${f==='all'?'Todas as insígnias':f}</button>`).join('')}</div><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" style="width:auto;margin:0" ${pool?'checked':''} onchange="pool=this.checked;render()">Incluir banco de talentos (quem autorizou)</label></div>
+<div class="tabs" style="margin:10px 0 0">${['all',...STG].map(s=>`<button class="sm ${stF===s?'on':''}" onclick="stF='${s}';render()">${s==='all'?'Todas as etapas':s+' ('+(nS[s]||0)+')'}</button>`).join('')}</div></div>
+${l.map((x,i)=>{const p=x.u.p,a=x.a,have=p.skills.map(s=>s.toLowerCase());
 return`<div class="card"><div class="row"><div><b>${i===0&&x.m>0?'⭐ ':''}${esc(x.u.name)}</b> ${pill(x.sc)}<div class="mu">📍 ${esc(place(p))} · ${yrs(p)} ano(s) · ${esc(p.edu)} · Inglês ${esc(p.eng)} · ${x.sc} pts</div></div><div class="pct">${x.m}%</div></div>
 <div class="bar"><i style="width:${x.m}%"></i></div>
 <div class="chips">${j.skills.map(s=>`<span class="chip ${have.includes(s.toLowerCase())?'ok':'no'}">${have.includes(s.toLowerCase())?'✓':'✗'} ${esc(s)}</span>`).join('')}</div>
-<div class="row">${x.a?`<label>Status <select style="width:auto" ${can('move')?'':'disabled'} onchange="setSt('${x.a.id}',this.value)">${['Recebida','Triagem','Entrevista','Aprovado','Recusado'].map(s=>`<option${x.a.status===s?' selected':''}>${s}</option>`).join('')}</select></label>`:'<span class="mu">Não se candidatou (banco de talentos)</span>'}</div>
+${a?stageCtl(a,x.u):'<span class="mu">Não se candidatou (banco de talentos)</span>'}
+<div class="row" style="margin-top:8px">${x.u.cv?`<button class="sm" onclick="dlCV('${x.u.id}')">Baixar currículo (${x.u.cv.type.toUpperCase()})</button>`:'<span class="mu">Sem currículo anexado</span>'}</div>
 <details><summary>Ver perfil completo</summary><p>${esc(p.summary)}</p><p class="mu">${esc(x.u.email)} · ${esc(p.phone)} · ${esc(p.link)} · Disponibilidade: ${esc(p.avail)} · Pretensão: R$ ${esc(p.salary)}</p>
-<b>Experiências</b>${p.exps.map(e=>`<div class="mu">${esc(e.role)} — ${esc(e.co)} (${esc(e.years)} ano(s))</div>`).join('')||'<div class="mu">—</div>'}
-<div class="chips">${p.skills.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}${p.certs.map(s=>`<span class="chip">🎓 ${esc(s)}</span>`).join('')}</div>
-${x.a?'<b>Respostas</b>'+x.a.ans.map(r=>`<div class="mu">${esc(r.q)}: <b style="color:var(--tx)">${esc(r.a)}</b></div>`).join(''):''}</details></div>`}).join('')||'<div class="card mu">Nenhum candidato neste filtro.</div>'}`}
-async function setSt(id,s){try{await api('PATCH','/apps/'+id,{status:s});apps.find(a=>a.id===id).status=s}catch(e){alert(e.message);render()}}
+<p class="mu">Cargo desejado: ${esc(p.want||'—')} · Modalidade: ${esc(p.mode||'—')}</p><b>Experiências</b>${p.exps.map(e=>`<div class="mu">${esc(e.role)} — ${esc(e.co)} (${esc(e.years)} ano(s)${per(e.start,e.end,'atual')?' · '+per(e.start,e.end,'atual'):''})${e.desc?'<br>'+esc(e.desc):''}</div>`).join('')||'<div class="mu">—</div>'}
+<div class="chips">${p.skills.map(s=>`<span class="chip">${esc(s)}</span>`).join('')}</div><b>Cursos e certificações</b>${[...(p.courses||[]),...(p.certs||[]).map(n=>({name:n}))].map(c=>`<div class="mu">🎓 ${esc(c.name)}${c.inst?' — '+esc(c.inst):''}${c.hours?' · '+esc(c.hours)+'h':''}${per(c.start,c.end,'')?' · '+per(c.start,c.end,''):''}${c.status?' · '+esc(c.status):''}${c.link?' · <a href="'+esc(c.link)+'" target="_blank" rel="noopener noreferrer">certificado</a>':''}</div>`).join('')||'<div class="mu">—</div>'}
+${a?'<b>Respostas</b>'+a.ans.map(r=>`<div class="mu">${esc(r.q)}: <b style="color:var(--tx)">${esc(r.a)}</b></div>`).join('')+'<br><b>Histórico</b>'+(a.hist||[]).map(h=>`<div class="mu">${fmtD(h.t)} · ${esc(h.by)}: ${h.from?esc(h.from)+' → ':''}${esc(h.to)}</div>`).join(''):''}</details></div>`}).join('')||'<div class="card mu">Nenhum candidato neste filtro.</div>'}`}
+/* ---------- mover etapa ---------- */
+function stageCtl(a,u){const ed=can('move'),i=STG.indexOf(a.status),nx=i>=0&&i<4?STG[i+1]:null,m=mv&&mv.id===a.id,r=lastMv[a.id];
+return`<div class="stg" role="group" aria-label="Etapa do processo">${STG.map(s=>`<button class="stb${a.status===s?' cur':''}${s==='Recusado'?' rej':''}" ${ed&&!m?'':'disabled'} aria-pressed="${a.status===s}" onclick="askMove('${a.id}','${s}')">${s}</button>`).join('')}</div>
+${ed&&nx&&!m?`<button class="pri sm" onclick="askMove('${a.id}','${nx}')">Avançar para ${nx}</button>`:''}${m?mvPanel(u):''}${r&&!m?mvResult(u,r):''}`}
+const CHL={email:'e-mail',whatsapp:'WhatsApp',both:'e-mail e WhatsApp'};
+const mvTpl=()=>{const T=MG?.msgs?.[mv.s];return T&&T.on?T:null};
+function mvVars(u){const d=mvInfo.date;return{nome:u.name.split(' ')[0],vaga:jobs.find(x=>x.id===mv.job)?.title||'',empresa:S.company.name,recrutador:S.name,data:d?d.split('-').reverse().join('/'):'a combinar',hora:mvInfo.time||'a combinar',local:mvInfo.place.trim()||'a combinar'}}
+function mvPanel(u){const T=mvTpl(),needs=T&&/\{(data|hora|local)\}/.test(T.body);
+return`<div class="mvp"><b>Mover para ${mv.s}</b>
+${needs?`<div class="g"><label>Data<input type="date" value="${esc(mvInfo.date)}" oninput="mvInfo.date=this.value;mvPrev()"></label><label>Horário<input type="time" value="${esc(mvInfo.time)}" oninput="mvInfo.time=this.value;mvPrev()"></label><label>Local ou link<input maxlength="200" value="${esc(mvInfo.place)}" placeholder="Endereço ou link da videochamada" oninput="mvInfo.place=this.value;mvPrev()"></label></div>`:''}
+${T?`<div class="mu">Mensagem para ${esc(u.name)} por ${CHL[T.ch]}:</div><pre class="msg" id="mvpre">${esc(fillT(T.body,mvVars(u)))}</pre>`:''}
+<div class="row"><div>${T?`<button class="pri" onclick="doMove(false)">Mover e enviar</button> <button onclick="doMove(true)">Mover sem enviar</button>`:`<button class="pri" onclick="doMove(false)">Confirmar</button>`}</div><button onclick="mv=null;render()">Cancelar</button></div></div>`}
+function mvPrev(){const el=$('#mvpre');if(!el||!mv)return;const u=cands.find(x=>x.id===mv.cid),T=mvTpl();if(u&&T)el.textContent=fillT(T.body,mvVars(u))}
+async function askMove(id,s){const a=apps.find(x=>x.id===id);if(!a||a.status===s||!can('move'))return;await ensureMsgs();mvInfo={date:'',time:'',place:''};delete lastMv[id];
+mv={id,s,from:a.status,cid:a.candId,job:a.jobId};
+if(mvTpl())render();else if(s==='Recusado'&&!confirm('Marcar esta candidatura como Recusado?'))mv=null;else doMove(false)}
+async function doMove(silent){const m=mv;if(!m)return;const T=mvTpl();
+try{const d=await api('PATCH','/apps/'+m.id,{status:m.s,silent:silent||undefined,info:{date:mvInfo.date,time:mvInfo.time,place:mvInfo.place}});
+const a=apps.find(x=>x.id===m.id);a.status=d.status;(a.hist=a.hist||[]).push({t:Date.now(),by:S.name,from:m.from,to:d.status});
+lastMv[m.id]={...d,wantWa:!!T&&!silent&&T.ch!=='email',silent:!!silent};mv=null;render()}catch(e){alert(e.message);mv=null;render()}}
+function mvResult(u,r){const L=[];
+if(r.silent)L.push('Etapa atualizada sem enviar mensagem. O candidato vê a mudança no sistema.');
+else{L.push('Etapa atualizada. O candidato recebeu o aviso no sistema.');
+const M={sent:'E-mail enviado para '+u.name+'.',dev:'E-mail registrado no terminal do servidor (modo de desenvolvimento).',off:'E-mail não enviado: o envio por e-mail ainda não está configurado no servidor (RESEND_API_KEY e MAIL_FROM).',fail:'Não foi possível enviar o e-mail. Tente de novo mais tarde.',dup:'E-mail não reenviado: esta mensagem já foi enviada nas últimas 24 horas.',limit:'Limite de e-mails por hora atingido. Tente mais tarde.'}[r.mail];if(M)L.push(M)}
+return`<div class="res" role="status">${L.map(x=>`<div>${esc(x)}</div>`).join('')}${r.wa?`<a class="btn pri sm" href="${esc(r.wa)}" target="_blank" rel="noopener noreferrer">Enviar no WhatsApp</a><div class="mu">Abre o WhatsApp com a mensagem pronta. Você confirma o envio lá.</div>`:r.wantWa?'<div>Não foi possível montar o link do WhatsApp: o candidato não informou um telefone válido.</div>':''}</div>`}
+/* ---------- mensagens automáticas ---------- */
+const VARS=[['nome','Primeiro nome do candidato'],['vaga','Título da vaga'],['empresa','Nome da empresa'],['recrutador','Seu nome'],['data','Data da entrevista'],['hora','Horário'],['local','Local ou link']];
+const CHO={email:'E-mail',whatsapp:'WhatsApp',both:'E-mail e WhatsApp'};
+async function loadMsgs(){MGerr='';try{MG=await api('GET','/messages')}catch(e){MGerr=e.message}render()}
+function msgCard(s){const m=MG.msgs[s],ed=MG.canEdit;
+return`<div class="card"><div class="row"><h3 style="margin:0">${s}</h3><label class="sw"><input type="checkbox" ${m.on?'checked':''} ${ed?'':'disabled'} onchange="MG.msgs['${s}'].on=this.checked"> Enviar ao mover para esta etapa</label></div>
+<div class="g"><label>Enviar por<select ${ed?'':'disabled'} onchange="MG.msgs['${s}'].ch=this.value;render()">${Object.entries(CHO).map(([k,v])=>`<option value="${k}"${m.ch===k?' selected':''}>${v}</option>`).join('')}</select></label>
+${m.ch!=='whatsapp'?`<label>Assunto do e-mail<input maxlength="120" value="${esc(m.subj)}" ${ed?'':'disabled'} onchange="MG.msgs['${s}'].subj=this.value"></label>`:''}</div>
+<label>Mensagem<textarea id="mb-${s}" rows="6" maxlength="1500" ${ed?'':'disabled'} onchange="MG.msgs['${s}'].body=this.value">${esc(m.body)}</textarea></label>
+${ed?`<div class="chips" aria-label="Inserir variável">${VARS.map(([k,d])=>`<button class="chip" title="${d}" onclick="insVar('${s}','${k}')">{${k}}</button>`).join('')}</div>`:''}</div>`}
+function insVar(s,k){const t=$('#mb-'+s);if(!t)return;const a=t.selectionStart??t.value.length,b=t.selectionEnd??a,v='{'+k+'}';t.value=t.value.slice(0,a)+v+t.value.slice(b);t.focus();t.selectionStart=t.selectionEnd=a+v.length;MG.msgs[s].body=t.value}
+function vMsgs(){if(MGerr)return`<div class="card err">${esc(MGerr)}</div>`;if(!MG)return'<div class="card mu">Carregando…</div>';
+return`<div class="card"><h3>Mensagens automáticas</h3><p class="mu" style="margin-top:0">Escolha o que o candidato recebe quando você move a candidatura de etapa. Dentro do sistema ele sempre vê um aviso. O e-mail sai pela plataforma e as respostas chegam ao e-mail de quem moveu. No WhatsApp, o link abre a conversa com a mensagem pronta e você confirma o envio.</p></div>${MSTG.map(msgCard).join('')}${MG.canEdit?'<button class="pri" onclick="saveMsgs()">Salvar mensagens</button>':'<p class="mu">Só administrador e RH editam os modelos.</p>'}`}
+async function saveMsgs(){try{MG=await api('PUT','/messages',{msgs:MG.msgs});render();toast('Mensagens salvas')}catch(e){alert(e.message)}}
+/* ---------- integrações de vagas ---------- */
+const PL={greenhouse:'Greenhouse',lever:'Lever'};
+async function loadInteg(){IGerr='';IGmsg='';try{IG=await api('GET','/integrations')}catch(e){IGerr=e.message}render()}
+function vInteg(){if(IGerr)return`<div class="card err">${esc(IGerr)}</div>`;if(!IG)return'<div class="card mu">Carregando…</div>';
+return`<div class="card"><h3>Vagas de outras plataformas</h3><p class="mu" style="margin-top:0">Conecte a página de vagas da sua empresa. As vagas aparecem para todos os candidatos na aba Outras plataformas, com link para se candidatar no site de origem.</p>
+${IG.items.map(x=>`<div class="row it"><div><b>${esc(x.label)}</b><div class="mu">${PL[x.type]} · ${esc(x.slug)}</div></div><button class="sm" onclick="delInteg('${x.id}')">Desconectar</button></div>`).join('')||'<p class="mu">Nenhuma plataforma conectada.</p>'}
+<div class="g"><label>Plataforma<select id="it"><option value="greenhouse">Greenhouse</option><option value="lever">Lever</option></select></label><label>Identificador<input id="is" maxlength="60" placeholder="ex.: minhaempresa"></label><label>Nome exibido (opcional)<input id="il" maxlength="60" placeholder="${esc(S.company.name)}"></label></div>
+<p class="mu">O identificador é o final do endereço da sua página de vagas: boards.greenhouse.io/<b>identificador</b> ou jobs.lever.co/<b>identificador</b>.</p>
+<div class="${IGmsg?'mu':'err'}" id="ier">${esc(IGmsg)}</div><button class="pri" onclick="addInteg()">Conectar</button></div>
+<div class="card"><h3>Fontes gerais</h3><p class="mu" style="margin-top:0"><b>Remotive</b>: ativa, com vagas remotas do mundo todo.<br><b>Adzuna</b>: ${IG.global.adzuna?'ativa, com vagas do Brasil.':'desativada. Para ativar, crie uma conta gratuita em developer.adzuna.com e defina ADZUNA_APP_ID e ADZUNA_APP_KEY no servidor.'}<br>LinkedIn, Indeed e Gupy não oferecem acesso aberto à lista de vagas e por isso não estão conectados.</p></div>`}
+async function addInteg(){try{const d=await api('POST','/integrations',{type:$('#it').value,slug:$('#is').value.trim(),label:$('#il').value.trim()});IG.items=d.items;X.items=null;IGmsg=`Conectado. Encontramos ${d.found} vaga(s) publicada(s).`;render()}catch(e){const el=$('#ier');el.className='err';el.textContent=e.message}}
+async function delInteg(id){if(!confirm('Desconectar esta plataforma? As vagas dela deixam de aparecer para os candidatos.'))return;try{const d=await api('DELETE','/integrations/'+id);IG.items=d.items;X.items=null;IGmsg='';render()}catch(e){alert(e.message)}}
+/* ---------- avisos em tempo quase real e efeito 3D ---------- */
+setInterval(async()=>{if(!S||S.role!=='cand'||document.hidden)return;
+try{const m=await api('GET','/me'),up=m.unread>(S.unread||0);S.unread=m.unread;setBell();
+if(up){toast('Você tem uma atualização na sua candidatura');apps=await api('GET','/apps');if(tab==='cands')render();else if(tab==='avisos')loadAv()}}catch(e){}},45000);
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches){let raf=0;addEventListener('pointermove',e=>{if(S||raf)return;raf=requestAnimationFrame(()=>{raf=0;const p=$('.podium');if(!p)return;p.style.setProperty('--ry',((e.clientX/innerWidth-.5)*40)+'deg');p.style.setProperty('--rx',(-(e.clientY/innerHeight-.5)*24)+'deg')})},{passive:true})}
 init();
 </script></body></html>
