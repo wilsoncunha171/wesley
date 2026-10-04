@@ -6,7 +6,7 @@ CODE=process.env.RECRUITER_CODE||'',TRUST=process.env.TRUST_PROXY==='1',HOSTS=(p
 const MAIL_KEY=process.env.RESEND_API_KEY||'',FROM=process.env.MAIL_FROM||'',BASE=(process.env.BASE_URL||`http://localhost:${PORT}`).replace(/\/$/,'');
 const PLATFORM_TOKEN=process.env.PLATFORM_TOKEN||'',LEADS_EMAIL=process.env.LEADS_EMAIL||'';
 const PLANS={fundador:{name:'Cliente Fundador',price:199,jobs:15,users:8,pool:true,promo:'10 primeiros clientes'},essencial:{name:'Essencial',price:199,jobs:3,users:2,pool:false},profissional:{name:'Profissional',price:399,jobs:15,users:8,pool:true},empresarial:{name:'Empresarial',price:799,jobs:60,users:30,pool:true}};
-const CROLES=['admin','rh','recrutador','gestor'],CAN={jobs:['admin','rh'],move:['admin','rh','recrutador'],team:['admin']};
+const CROLES=['admin','rh','recrutador','gestor'],CAN={jobs:['admin','rh'],move:['admin','rh','recrutador'],team:['admin'],integ:['admin']};
 const REQ2=process.env.REQUIRE_2FA==='1'||(PROD&&process.env.REQUIRE_2FA!=='0');
 let KEY=null;
 if(process.env.DATA_KEY){KEY=Buffer.from(process.env.DATA_KEY,'hex');if(KEY.length!==32){console.error('DATA_KEY deve ter 64 caracteres hex. Gere com: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');process.exit(1)}}
@@ -15,7 +15,8 @@ if(!MAIL_KEY||!FROM)console.warn('AVISO: e-mail não configurado (RESEND_API_KEY
 if(!KEY)console.warn('AVISO: sem DATA_KEY o banco NÃO é criptografado em disco.');
 /* ---------- armazenamento (AES-256-GCM em repouso) ---------- */
 const enc=s=>{const iv=crypto.randomBytes(12),c=crypto.createCipheriv('aes-256-gcm',KEY,iv),ct=Buffer.concat([c.update(s,'utf8'),c.final()]);return Buffer.concat([Buffer.from('TLN1'),iv,c.getAuthTag(),ct])};
-const dec=b=>{const d=crypto.createDecipheriv('aes-256-gcm',KEY,b.subarray(4,16));d.setAuthTag(b.subarray(16,32));return Buffer.concat([d.update(b.subarray(32)),d.final()]).toString('utf8')};
+const decB=b=>{const d=crypto.createDecipheriv('aes-256-gcm',KEY,b.subarray(4,16));d.setAuthTag(b.subarray(16,32));return Buffer.concat([d.update(b.subarray(32)),d.final()])};
+const dec=b=>decB(b).toString('utf8');
 let DB={users:[],jobs:[],apps:[],sessions:{},companies:[],leads:[]};
 try{const b=fs.readFileSync(FILE);DB={...DB,...JSON.parse(b.subarray(0,4).toString()==='TLN1'?dec(b):b.toString('utf8'))}}
 catch(e){if(e.code!=='ENOENT'){console.error('Falha ao ler o banco (chave errada ou arquivo corrompido). Abortando para não sobrescrever dados.');process.exit(1)}}
@@ -24,24 +25,30 @@ if(orph.length||DB.jobs.some(j=>!j.companyId)){const c={id:crypto.randomUUID(),n
 orph.forEach((u,i)=>{u.companyId=c.id;u.crole=i?'recrutador':'admin'});DB.jobs.forEach(j=>{if(!j.companyId)j.companyId=c.id;j.status=j.status||'open'})}}
 function flush(){const s=JSON.stringify(DB);fs.writeFileSync(FILE+'.tmp',KEY?enc(s):s,{mode:0o600});fs.renameSync(FILE+'.tmp',FILE)}
 let tm;const save=()=>{clearTimeout(tm);tm=setTimeout(flush,50)};
+const CVDIR=path.join(path.dirname(FILE),'cv'),CVMAX=3*1024*1024;
+try{fs.mkdirSync(CVDIR,{recursive:true,mode:0o700})}catch(e){console.error('Não foi possível criar a pasta de currículos:',e.message)}
+const cvPath=id=>path.join(CVDIR,id+'.bin');
 for(const s of['SIGINT','SIGTERM'])process.on(s,()=>{try{flush()}catch{}process.exit(0)});
 /* ---------- utilidades ---------- */
 const E=(c,m)=>({c,m}),CTRL=/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 const str=(v,n=200)=>String(v??'').replace(CTRL,'').trim().slice(0,n);
 const list=(v,n=30,l=60)=>(Array.isArray(v)?v:[]).slice(0,n).map(x=>str(x,l)).filter(Boolean);
 const EDU=['Ensino médio','Técnico','Graduação','Pós-graduação','Mestrado/Doutorado'],ENG=['Nenhum','Básico','Intermediário','Avançado','Fluente'],
-QT=['text','long','choice','yesno','number','date','url'],MODE=['Presencial','Híbrido','Remoto'],ST=['Recebida','Triagem','Entrevista','Aprovado','Recusado'],
-AV=['Imediata','15 dias','30 dias','Mais de 30 dias'];
-const pick=(v,a)=>a.includes(v)?v:a[0],uf=v=>/^[A-Za-z]{2}$/.test(v)?v.toUpperCase():'',UUID=/^[0-9a-f-]{36}$/;
+QT=['text','long','choice','yesno','number','date','url'],MODE=['Presencial','Híbrido','Remoto'],ST=['Recebida','Triagem','Entrevista','Proposta','Aprovado','Recusado'],
+AV=['Imediata','15 dias','30 dias','Mais de 30 dias'],CT=['Curso','Certificação','Workshop/Treinamento','Técnico','Graduação','Pós-graduação','Outro'],CS=['Concluído','Em andamento'];
+const ym=v=>/^\d{4}-(0[1-9]|1[0-2])$/.test(str(v,7))?str(v,7):'',url=v=>/^https?:\/\//i.test(str(v,200))?str(v,200):'',pick=(v,a)=>a.includes(v)?v:a[0],uf=v=>/^[A-Za-z]{2}$/.test(v)?v.toUpperCase():'',UUID=/^[0-9a-f-]{36}$/;
 const cleanP=p=>({mode:pick(p.mode,['Qualquer',...MODE]),uf:uf(str(p.uf,2)),city:str(p.city,80),phone:str(p.phone,20).replace(/[^\d()+\-\s]/g,''),link:/^https?:\/\//i.test(str(p.link,200))?str(p.link,200):'',summary:str(p.summary,1000),edu:pick(p.edu,EDU),eng:pick(p.eng,ENG),avail:pick(p.avail,AV),
-salary:str(p.salary,10).replace(/\D/g,''),open:p.open===true,skills:list(p.skills),certs:list(p.certs),
-exps:(Array.isArray(p.exps)?p.exps:[]).slice(0,15).map(e=>({role:str(e?.role,80),co:str(e?.co,80),years:Math.min(Math.max(+e?.years||0,0),50)}))});
+salary:str(p.salary,10).replace(/\D/g,''),open:p.open===true,notifyEmail:p.notifyEmail!==false,skills:list(p.skills),certs:list(p.certs),
+want:str(p.want,80),
+exps:(Array.isArray(p.exps)?p.exps:[]).slice(0,15).map(e=>({role:str(e?.role,80),co:str(e?.co,80),years:Math.min(Math.max(+e?.years||0,0),50),start:ym(e?.start),end:ym(e?.end),desc:str(e?.desc,400)})),
+courses:(Array.isArray(p.courses)?p.courses:[]).slice(0,30).map(c=>({name:str(c?.name,120),inst:str(c?.inst,120),type:pick(c?.type,CT),status:pick(c?.status,CS),hours:Math.min(Math.max(Math.round(+c?.hours||0),0),20000),start:ym(c?.start),end:ym(c?.end),link:url(c?.link)})).filter(c=>c.name)});
 const cleanJ=j=>({title:str(j.title,120),area:str(j.area,60),desc:str(j.desc,2000),skills:list(j.skills,20),minYears:Math.min(Math.max(+j.minYears||0,0),40),minEdu:pick(j.minEdu,EDU),uf:uf(str(j.uf,2)),city:str(j.city,80),mode:pick(j.mode,MODE),
 qs:(Array.isArray(j.qs)?j.qs:[]).slice(0,15).map(q=>({label:str(q?.label,200),type:pick(q?.type,QT),opts:list(q?.opts,10)})).filter(q=>q.label)});
-const pub=u=>({id:u.id,name:u.name,email:u.email,role:u.role,p:u.p});
+const cvMeta=u=>u.cv?{name:u.cv.name,type:u.cv.type,size:u.cv.size,t:u.cv.t}:null;
+const pub=u=>({id:u.id,name:u.name,email:u.email,role:u.role,p:u.p,cv:cvMeta(u)});
 const coOf=u=>DB.companies.find(c=>c.id===u.companyId);
 const usage=c=>({jobsOpen:DB.jobs.filter(j=>j.companyId===c.id&&j.status==='open').length,usersN:DB.users.filter(u=>u.companyId===c.id).length});
-const self=u=>{const o={...pub(u),t2:!!u.t2,req2:REQ2&&u.role==='rec'};if(u.role==='rec'){const c=coOf(u);o.crole=u.crole;o.company={name:c.name,plan:c.plan,limits:PLANS[c.plan],...usage(c)}}return o};
+const self=u=>{const o={...pub(u),t2:!!u.t2,req2:REQ2&&u.role==='rec'};if(u.role==='cand')o.unread=(u.nt||[]).filter(n=>!n.r).length;if(u.role==='rec'){const c=coOf(u);o.crole=u.crole;o.company={name:c.name,plan:c.plan,limits:PLANS[c.plan],...usage(c)}}return o};
 const perm=(me,k)=>{need(me,'rec');need2(me);if(!CAN[k].includes(me.crole))throw E(403,'Seu papel na empresa não permite esta ação.')};
 const need2=me=>{if(REQ2&&me.role==='rec'&&!me.t2)throw E(403,'Ative a verificação em duas etapas na aba Segurança para acessar dados de candidatos.')};
 const need=(me,r)=>{if(!me)throw E(401,'Faça login.');if(r&&me.role!==r)throw E(403,'Sem permissão.')};
@@ -49,9 +56,11 @@ const sha=s=>crypto.createHash('sha256').update(String(s)).digest();
 const safeEq=(a,b)=>crypto.timingSafeEqual(sha(a),sha(b));
 const log=(ev,ip,x={})=>fs.appendFile(path.join(__dirname,'audit.log'),JSON.stringify({t:new Date().toISOString(),ev,ip,...x})+'\n',{mode:0o600},()=>{});
 /* ---------- e-mail (API HTTP do Resend; sem dependências) ---------- */
-async function mail(to,subject,text){
-if(!MAIL_KEY||!FROM){if(!PROD)console.log('[dev] e-mail para',to,'\n'+text);return}
-try{const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+MAIL_KEY,'Content-Type':'application/json'},body:JSON.stringify({from:FROM,to:[to],subject,text})});if(!r.ok)console.error('Falha ao enviar e-mail:',r.status)}catch{console.error('Falha ao enviar e-mail')}}
+async function mail(to,subject,text,replyTo){
+subject=str(subject,150).replace(/[\r\n]+/g,' ');
+if(!MAIL_KEY||!FROM){if(!PROD)console.log('[dev] e-mail para',to,'\n'+subject+'\n'+text);return PROD?'off':'dev'}
+try{const r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+MAIL_KEY,'Content-Type':'application/json'},body:JSON.stringify({from:FROM,to:[to],subject,text,...(replyTo?{reply_to:replyTo}:{})}),signal:AbortSignal.timeout(8000)});
+if(!r.ok){console.error('Falha ao enviar e-mail:',r.status);return'fail'}return'sent'}catch{console.error('Falha ao enviar e-mail');return'fail'}}
 /* ---------- 2FA (TOTP, RFC 6238) ---------- */
 const B32='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 const b32=buf=>{let bits=0,v=0,o='';for(const x of buf){v=(v<<8)|x;bits+=8;while(bits>=5){o+=B32[(v>>>(bits-5))&31];bits-=5}}if(bits>0)o+=B32[(v<<(5-bits))&31];return o};
@@ -80,8 +89,63 @@ const cookie=(res,v,age)=>res.setHeader('Set-Cookie',`${CN}=${v}; HttpOnly; Same
 function session(u,res){const now=Date.now(),t=crypto.randomBytes(32).toString('base64url');
 for(const k in DB.sessions){const s=DB.sessions[k];if(s.exp<now||s.idle<now)delete DB.sessions[k]}
 DB.sessions[th(t)]={uid:u.id,exp:now+ABS,idle:now+IDLE};save();cookie(res,t,ABS/1000);return{user:self(u)}}
+/* ---------- avisos ao candidato e mensagens automáticas ---------- */
+const STAGES=ST.filter(x=>x!=='Recebida'),CHS=['email','whatsapp','both'];
+const SIGN='\n\nAtenciosamente,\n{recrutador} — {empresa}';
+const MSG0={
+Triagem:{on:false,ch:'email',subj:'Sua candidatura está em análise — {vaga}',body:'Olá, {nome}!\n\nSua candidatura para a vaga {vaga} na {empresa} avançou para a etapa de triagem. Assim que houver novidades, avisaremos você.'+SIGN},
+Entrevista:{on:true,ch:'email',subj:'Convite para entrevista — {vaga}',body:'Olá, {nome}!\n\nVocê foi selecionado(a) para a entrevista da vaga {vaga} na {empresa}.\n\nData: {data}\nHorário: {hora}\nLocal ou link: {local}\n\nPor favor, responda confirmando sua presença.'+SIGN},
+Proposta:{on:false,ch:'email',subj:'Novidade sobre a vaga {vaga}',body:'Olá, {nome}!\n\nVocê avançou para a etapa de proposta da vaga {vaga} na {empresa}. Entraremos em contato com os detalhes.'+SIGN},
+Aprovado:{on:false,ch:'email',subj:'Parabéns! Você foi aprovado(a) — {vaga}',body:'Olá, {nome}!\n\nParabéns! Você foi aprovado(a) no processo seletivo da vaga {vaga} na {empresa}. Em breve entraremos em contato com os próximos passos.'+SIGN},
+Recusado:{on:false,ch:'email',subj:'Atualização sobre sua candidatura — {vaga}',body:'Olá, {nome}!\n\nAgradecemos seu interesse na vaga {vaga} na {empresa}. Neste momento seguiremos com outros candidatos, mas manteremos seu perfil em nossa base para futuras oportunidades.'+SIGN}};
+const msgsOf=c=>Object.fromEntries(STAGES.map(x=>[x,{...MSG0[x],...(c.msgs?.[x]||{})}]));
+const cleanMsgs=b=>Object.fromEntries(STAGES.map(x=>{const m=b?.[x]||{};return[x,{on:m.on===true,ch:pick(m.ch,CHS),subj:str(m.subj,120).replace(/\s+/g,' ')||MSG0[x].subj,body:str(m.body,1500)||MSG0[x].body}]}));
+const fill=(t,v)=>String(t).replace(/\{(\w+)\}/g,(m,k)=>k in v?v[k]:m);
+const dBR=d=>/^\d{4}-\d{2}-\d{2}$/.test(String(d||''))?d.split('-').reverse().join('/'):'';
+const waLink=(phone,text)=>{let d=String(phone||'').replace(/\D/g,'');if(d.length<10||d.length>13)return null;if(d.length<=11)d='55'+d;return'https://wa.me/'+d+'?text='+encodeURIComponent(text)};
+function notify(u,title,body,appId){(u.nt=u.nt||[]).unshift({id:crypto.randomUUID(),t:Date.now(),title:str(title,150),body:str(body,1500),app:appId,r:false});u.nt.length=Math.min(u.nt.length,50)}
+// Chamado depois que a etapa da candidatura mudou. Sempre avisa dentro do sistema; e-mail/WhatsApp seguem o modelo da empresa.
+async function moved(me,a,jb,info,silent){
+const cand=DB.users.find(u=>u.id===a.candId),co=coOf(me);if(!cand||!co)return{mail:'none',wa:null};
+const T=msgsOf(co)[a.status],hi=/^\d{2}:\d{2}$/.test(String(info.time||''))?info.time:'a combinar';
+const v={nome:cand.name.split(' ')[0],vaga:jb.title,empresa:co.name,recrutador:me.name,data:dBR(info.date)||'a combinar',hora:hi,local:str(info.place,200)||'a combinar'};
+let body=null,subj='',mailSt='none',wa=null,useT=!silent&&T&&T.on;
+a.sent=a.sent||{};
+const trySend=async(key,sj,tx)=>{if(Date.now()-(a.sent[key]||0)<864e5)return'dup';if(cnt('mc:'+co.id,36e5).length>=200)return'limit';hit('mc:'+co.id,36e5);const r=await mail(cand.email,sj,tx,me.email);if(r==='sent'||r==='dev')a.sent[key]=Date.now();return r};
+if(useT){body=fill(T.body,v);subj=fill(T.subj,v);
+ if(T.ch!=='whatsapp')mailSt=await trySend(a.status,subj,body);
+ if(T.ch!=='email')wa=waLink(cand.p?.phone,body)}
+if(!silent&&mailSt==='none'&&!(useT&&T.ch==='whatsapp')&&cand.p?.notifyEmail!==false)
+ mailSt=await trySend('b:'+a.status,`Atualização da sua candidatura — ${jb.title}`,`Olá, ${v.nome}!\n\nSua candidatura para a vaga ${jb.title} (${co.name}) agora está na etapa: ${a.status}.\n\nAcompanhe em ${BASE}`);
+notify(cand,`${jb.title} — ${a.status}`,body||`Sua candidatura na ${co.name} avançou para a etapa: ${a.status}.`,a.id);
+return{mail:mailSt,wa}}
+/* ---------- vagas de outras plataformas (somente APIs públicas) ---------- */
+const ADZ_ID=process.env.ADZUNA_APP_ID||'',ADZ_KEY=process.env.ADZUNA_APP_KEY||'',ADZ=!!(ADZ_ID&&ADZ_KEY);
+const SRC={greenhouse:'Greenhouse',lever:'Lever'};
+const XC=new Map();
+async function xget(key,ttl,fn,failTtl=6e4){const c=XC.get(key);if(c&&Date.now()-c.t<c.ttl)return c.d;let d,t=ttl;try{d=await fn()}catch{d=[];t=failTtl}
+XC.set(key,{t:Date.now(),ttl:t,d});if(XC.size>300)XC.delete(XC.keys().next().value);return d}
+async function jget(u,max=4e6){const r=await fetch(u,{headers:{Accept:'application/json','User-Agent':'Talentos/1.5'},signal:AbortSignal.timeout(9000)});if(!r.ok)throw new Error('HTTP '+r.status);const t=await r.text();if(t.length>max)throw new Error('resposta grande');return JSON.parse(t)}
+const strip=x=>String(x||'').replace(/<[^>]*>/g,' ').replace(/&(nbsp|amp|lt|gt|quot|#39);/g,(m,k)=>({nbsp:' ',amp:'&',lt:'<',gt:'>',quot:'"','#39':"'"}[k])).replace(/\s+/g,' ').trim();
+const xjob=(src,label,o)=>{const d=o.date?new Date(o.date):null;return{id:src+':'+str(o.id,80),src,label,title:str(strip(o.title),140),company:str(strip(o.company),100),loc:str(strip(o.loc),100),type:str(strip(o.type),40),date:d&&!isNaN(d)?d.toISOString().slice(0,10):'',url:/^https:\/\//i.test(String(o.url||''))?String(o.url).slice(0,500):'',desc:str(strip(o.desc),300)}};
+const connector={
+async greenhouse({slug,label}){const d=await jget('https://boards-api.greenhouse.io/v1/boards/'+encodeURIComponent(slug)+'/jobs');return(Array.isArray(d.jobs)?d.jobs:[]).slice(0,200).map(x=>xjob('gh','Greenhouse',{id:x.id,title:x.title,company:label,loc:x.location?.name,date:x.updated_at,url:x.absolute_url}))},
+async lever({slug,label}){const d=await jget('https://api.lever.co/v0/postings/'+encodeURIComponent(slug)+'?mode=json');return(Array.isArray(d)?d:[]).slice(0,200).map(x=>xjob('lv','Lever',{id:x.id,title:x.text,company:label,loc:x.categories?.location,type:x.categories?.commitment,date:x.createdAt,url:x.hostedUrl,desc:x.descriptionPlain}))},
+async adzuna({what,where}){const u=new URL('https://api.adzuna.com/v1/api/jobs/br/search/1');u.search=new URLSearchParams({app_id:ADZ_ID,app_key:ADZ_KEY,results_per_page:'30','content-type':'application/json',...(what?{what}:{}),...(where?{where}:{})});
+const d=await jget(u);return(Array.isArray(d.results)?d.results:[]).map(x=>xjob('az','Adzuna',{id:x.id,title:x.title,company:x.company?.display_name,loc:x.location?.display_name,type:x.contract_time==='full_time'?'Tempo integral':x.contract_time==='part_time'?'Meio período':'',date:x.created,url:x.redirect_url,desc:x.description}))},
+async remotive(){const d=await jget('https://remotive.com/api/remote-jobs?limit=150',6e6);return(Array.isArray(d.jobs)?d.jobs:[]).slice(0,150).map(x=>xjob('rm','Remotive',{id:x.id,title:x.title,company:x.company_name,loc:x.candidate_required_location||'Remoto',type:({full_time:'Tempo integral',part_time:'Meio período',contract:'Contrato',freelance:'Freelance',internship:'Estágio'})[x.job_type]||x.job_type,date:x.publication_date,url:x.url,desc:x.description}))}};
+async function external(q){const text=str(q.get('q'),80).toLowerCase(),where=str(q.get('where'),60).toLowerCase(),src=str(q.get('src'),20),tasks=[];
+for(const co of DB.companies)for(const it of co.integ||[])if(!src||src===it.type)tasks.push(xget(it.type+':'+it.slug.toLowerCase()+':'+it.label,18e5,()=>connector[it.type](it)));
+if(ADZ&&(!src||src==='adzuna')&&cnt('azg',36e5).length<60)tasks.push(xget('az:'+text+':'+where,18e5,()=>{hit('azg',36e5);return connector.adzuna({what:text,where})},3e5));
+if(!src||src==='remotive')tasks.push(xget('rm',216e5,()=>connector.remotive(),36e5));
+const res=await Promise.all(tasks),seen=new Set();
+let items=res.flat().filter(x=>x.title&&x.url&&!seen.has(x.id)&&seen.add(x.id));
+if(text)items=items.filter(x=>(x.title+' '+x.company+' '+x.desc).toLowerCase().includes(text));
+if(where)items=items.filter(x=>x.loc.toLowerCase().includes(where));
+items.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+return{items:items.slice(0,60),total:items.length,sources:[...new Set(items.map(x=>x.label))]}}
 /* ---------- rotas ---------- */
-async function route(m,p,b,c){const{me,ip,res}=c,k=m+' '+p;
+async function route(m,p,b,c){const{me,ip,res,q}=c,k=m+' '+p;
 if(k==='POST /api/register'){limit('a:'+ip,10,9e5);const role=b.role==='rec'?'rec':'cand',email=str(b.email,120).toLowerCase(),name=str(b.name,80),pw=String(b.password||'');
 if(!name||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw E(400,'Informe nome e e-mail válido.');
 if(!strong(pw,email))throw E(400,'Senha: 10+ caracteres, com letras e números, e não pode ser óbvia.');
@@ -111,8 +175,8 @@ if(DB.apps.some(a=>a.jobId===j.id&&a.candId===me.id))throw E(409,'Você já se c
 const an=Array.isArray(b.answers)?b.answers:[];if(an.length!==j.qs.length||an.some(x=>!str(x)))throw E(400,'Responda todas as perguntas.');
 const a={id:crypto.randomUUID(),jobId:j.id,candId:me.id,ans:j.qs.map((q,i)=>({q:q.label,a:str(an[i],1000)})),status:'Recebida',date:new Date().toLocaleDateString('pt-BR'),hist:[{t:Date.now(),by:'Candidato',from:'',to:'Recebida'}]};
 DB.apps.push(a);save();return a}
-if(k==='GET /api/apps'){need(me);if(me.role==='rec'){need2(me);const ids=new Set(DB.jobs.filter(j=>j.companyId===me.companyId).map(j=>j.id));return DB.apps.filter(a=>ids.has(a.jobId))}
-return DB.apps.filter(a=>a.candId===me.id).map(({hist,...a})=>a)}
+if(k==='GET /api/apps'){need(me);if(me.role==='rec'){need2(me);const ids=new Set(DB.jobs.filter(j=>j.companyId===me.companyId).map(j=>j.id));return DB.apps.filter(a=>ids.has(a.jobId)).map(({sent,...a})=>a)}
+return DB.apps.filter(a=>a.candId===me.id).map(({hist,sent,...a})=>{const j=DB.jobs.find(x=>x.id===a.jobId);return{...a,jobTitle:j?.title||'Vaga encerrada',company:DB.companies.find(c=>c.id===j?.companyId)?.name||'',jobOpen:j?.status==='open'}})}
 if(k==='GET /api/candidates'){need(me,'rec');need2(me);const c=coOf(me),jids=new Set(DB.jobs.filter(j=>j.companyId===c.id).map(j=>j.id)),ids=new Set(DB.apps.filter(a=>jids.has(a.jobId)).map(a=>a.candId));
 return DB.users.filter(u=>u.role==='cand'&&(ids.has(u.id)||(PLANS[c.plan].pool&&u.p.open))).map(pub)}
 if(k==='POST /api/lgpd/request'){need(me);limit('lg:'+me.id,5,36e5);const type=str(b.type,40),detail=str(b.detail,500);
@@ -122,12 +186,12 @@ if(LEADS_EMAIL)mail(LEADS_EMAIL,`Solicitação LGPD (${type}) — Talentos`,`Usu
 Tipo: ${type}
 Detalhes: ${detail}`);
 return{ok:true,message:'Solicitação registrada com sucesso. O Encarregado (DPO) responderá em até 15 dias conforme a LGPD.'}}
-if(k==='GET /api/export'){need(me);return{conta:pub(me),candidaturas:DB.apps.filter(a=>a.candId===me.id)}}
+if(k==='GET /api/export'){need(me);return{conta:pub(me),candidaturas:DB.apps.filter(a=>a.candId===me.id).map(({sent,...a})=>a),avisos:(me.nt||[]).map(({id,t,title,body})=>({id,t,title,body}))}}
 if(k==='DELETE /api/account'){need(me);limit('a:'+ip,10,9e5);if(!await ok(String(b.password||''),me.ph))throw E(400,'Senha incorreta.');
 if(me.role==='rec'){const others=DB.users.filter(u=>u.companyId===me.companyId&&u.id!==me.id);
 if(me.crole==='admin'&&others.length&&!others.some(u=>u.crole==='admin'))throw E(400,'Transfira a administração a outra pessoa antes de excluir sua conta.');
 if(!others.length){const jids=new Set(DB.jobs.filter(j=>j.companyId===me.companyId).map(j=>j.id));DB.apps=DB.apps.filter(a=>!jids.has(a.jobId));DB.jobs=DB.jobs.filter(j=>j.companyId!==me.companyId);DB.companies=DB.companies.filter(x=>x.id!==me.companyId)}}
-DB.users=DB.users.filter(u=>u.id!==me.id);DB.apps=DB.apps.filter(a=>a.candId!==me.id);
+DB.users=DB.users.filter(u=>u.id!==me.id);DB.apps=DB.apps.filter(a=>a.candId!==me.id);try{fs.unlinkSync(cvPath(me.id))}catch{}
 for(const t in DB.sessions)if(DB.sessions[t].uid===me.id)delete DB.sessions[t];save();cookie(res,'',0);log('account_delete',ip,{uid:me.id});return{ok:true}}
 if(k==='POST /api/2fa/setup'){need(me);if(me.t2)throw E(400,'A verificação em duas etapas já está ativa.');me.t2p=b32(crypto.randomBytes(20));save();
 return{secret:me.t2p,uri:`otpauth://totp/Talentos:${encodeURIComponent(me.email)}?secret=${me.t2p}&issuer=Talentos`}}
@@ -171,6 +235,38 @@ if(u.crole==='admin'&&nAdm<2&&(m==='DELETE'||b.crole!=='admin'))throw E(400,'A e
 if(m==='DELETE'){DB.users=DB.users.filter(x=>x!==u);for(const t in DB.sessions)if(DB.sessions[t].uid===u.id)delete DB.sessions[t]}
 else{if(!CROLES.includes(b.crole))throw E(400,'Papel inválido.');u.crole=b.crole}
 save();log('team_'+m.toLowerCase(),ip,{uid:me.id,target:u.id});return{ok:true}}
+if(k==='PUT /api/cv'){need(me,'cand');limit('cv:'+me.id,10,36e5);const f=c.raw;
+if(!f||f.length<100)throw E(400,'Arquivo vazio ou inválido.');
+let type=null;if(f.subarray(0,5).toString('latin1')==='%PDF-')type='pdf';
+else if(f[0]===0x50&&f[1]===0x4b&&f[2]===3&&f[3]===4&&f.includes('word/document.xml')&&!f.includes('vbaProject'))type='docx';
+if(!type)throw E(400,'Envie o currículo em PDF ou Word (.docx).');
+const name=str(c.fname,120).replace(/[^\w.\- ()À-ÿ]/g,'').slice(0,100)||('curriculo.'+type);
+fs.writeFileSync(cvPath(me.id),KEY?enc(f):f,{mode:0o600});me.cv={name,type,size:f.length,t:Date.now()};save();log('cv_upload',ip,{uid:me.id,size:f.length});return self(me)}
+if(k==='DELETE /api/cv'){need(me,'cand');try{fs.unlinkSync(cvPath(me.id))}catch{}me.cv=null;save();log('cv_delete',ip,{uid:me.id});return self(me)}
+const cm=p.match(/^\/api\/cv(?:\/([0-9a-f-]{36}))?$/);
+if(m==='GET'&&cm){need(me);let u;
+if(me.role==='cand'){if(cm[1]&&cm[1]!==me.id)throw E(403,'Sem permissão.');u=me}
+else{need2(me);u=cm[1]&&DB.users.find(x=>x.id===cm[1]&&x.role==='cand');const co=coOf(me),jids=new Set(DB.jobs.filter(j=>j.companyId===co.id).map(j=>j.id));
+if(!u||!(DB.apps.some(a=>a.candId===u.id&&jids.has(a.jobId))||(PLANS[co.plan].pool&&u.p.open)))throw E(404,'Currículo não encontrado.');log('cv_view',ip,{uid:me.id,cand:u.id})}
+if(!u.cv)throw E(404,'Nenhum currículo enviado.');
+let f;try{f=fs.readFileSync(cvPath(u.id));if(f.subarray(0,4).toString()==='TLN1')f=decB(f)}catch{throw E(404,'Arquivo não encontrado.')}
+const ext=u.cv.type==='docx'?'docx':'pdf',slug=u.name.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w]+/g,'-').replace(/^-|-$/g,'').toLowerCase().slice(0,40)||'candidato';
+return{__bin:f,type:ext==='pdf'?'application/pdf':'application/vnd.openxmlformats-officedocument.wordprocessingml.document',name:'curriculo-'+slug+'.'+ext}}
+if(k==='GET /api/notifications'){need(me,'cand');const l=me.nt||[];return{items:l.map(({id,t,title,body,r})=>({id,t,title,body,r})),unread:l.filter(n=>!n.r).length}}
+if(k==='POST /api/notifications/read'){need(me,'cand');(me.nt||[]).forEach(n=>n.r=true);save();return{ok:true}}
+if(k==='GET /api/messages'){need(me,'rec');return{msgs:msgsOf(coOf(me)),canEdit:CAN.jobs.includes(me.crole)}}
+if(k==='PUT /api/messages'){perm(me,'jobs');const co=coOf(me);co.msgs=cleanMsgs(b.msgs);save();log('msgs_set',ip,{uid:me.id});return{msgs:msgsOf(co),canEdit:true}}
+if(k==='GET /api/integrations'){perm(me,'integ');return{items:coOf(me).integ||[],global:{adzuna:ADZ,remotive:true}}}
+if(k==='POST /api/integrations'){perm(me,'integ');limit('in:'+me.id,20,36e5);const co=coOf(me),type=b.type,slug=str(b.slug,60);
+if(!SRC[type])throw E(400,'Plataforma inválida.');
+if(!/^[A-Za-z0-9_-]{2,60}$/.test(slug))throw E(400,'Identificador inválido. Use só letras, números, hífen e sublinhado (é o trecho final do endereço da sua página de vagas).');
+co.integ=co.integ||[];if(co.integ.length>=5)throw E(400,'Limite de 5 integrações por empresa.');
+if(co.integ.some(x=>x.type===type&&x.slug.toLowerCase()===slug.toLowerCase()))throw E(409,'Esta integração já existe.');
+const label=str(b.label,60)||co.name;let n;try{n=(await connector[type]({slug,label})).length}catch{throw E(400,'Não encontramos uma página pública de vagas em '+SRC[type]+' com esse identificador. Confira o endereço.')}
+co.integ.push({id:crypto.randomUUID(),type,slug,label});save();log('integ_add',ip,{uid:me.id,type});return{items:co.integ,found:n}}
+const im=p.match(/^\/api\/integrations\/([0-9a-f-]{36})$/);
+if(m==='DELETE'&&im){perm(me,'integ');const co=coOf(me);co.integ=(co.integ||[]).filter(x=>x.id!==im[1]);save();return{items:co.integ}}
+if(k==='GET /api/external'){need(me);limit('x:'+me.id,240,36e5);return await external(q)}
 const jm=p.match(/^\/api\/jobs\/([0-9a-f-]{36})$/);
 if(m==='PATCH'&&jm){perm(me,'jobs');const j=DB.jobs.find(x=>x.id===jm[1]&&x.companyId===me.companyId);if(!j)throw E(404,'Vaga não encontrada.');
 if(!['open','closed'].includes(b.status))throw E(400,'Status inválido.');
@@ -179,7 +275,10 @@ j.status=b.status;save();return j}
 const mm=p.match(/^\/api\/apps\/([0-9a-f-]{36})$/);
 if(m==='PATCH'&&mm){perm(me,'move');const a=DB.apps.find(x=>x.id===mm[1]),jb=a&&DB.jobs.find(x=>x.id===a.jobId);if(!a||!jb||jb.companyId!==me.companyId)throw E(404,'Candidatura não encontrada.');
 if(!ST.includes(b.status))throw E(400,'Status inválido.');
-if(a.status!==b.status){(a.hist=a.hist||[]).push({t:Date.now(),by:me.name,from:a.status,to:b.status});a.status=b.status;save();log('app_status',ip,{uid:me.id,app:a.id,to:b.status})}return a}
+let out={mail:'none',wa:null};
+if(a.status!==b.status){(a.hist=a.hist||[]).push({t:Date.now(),by:me.name,from:a.status,to:b.status});a.status=b.status;
+out=await moved(me,a,jb,b.info&&typeof b.info==='object'?b.info:{},b.silent===true);save();log('app_status',ip,{uid:me.id,app:a.id,to:b.status,mail:out.mail})}
+return{id:a.id,status:a.status,...out}}
 throw E(404,'Rota não encontrada.')}
 /* ---------- servidor HTTP ---------- */
 const PUB=path.join(__dirname,'public'),IDX=path.join(PUB,'index.html');
@@ -201,20 +300,30 @@ const ip=(TRUST?String(req.headers['x-forwarded-for']||'').split(',').pop().trim
 try{
 if(HOSTS.length&&!HOSTS.includes(req.headers.host))return j(400,{error:'Host inválido.'});
 limit('g:'+ip,300,6e4);
-const p=(req.url||'/').split('?')[0];
+const[p,qs='']=(req.url||'/').split('?');
 if(!p.startsWith('/api/')){if(req.method!=='GET'&&req.method!=='HEAD')return j(405,{error:'Método não permitido.'});const h=page();if(!h)return send(503,MISSING,'text/html; charset=utf-8');return send(200,h,'text/html; charset=utf-8','no-cache')}
 if(!['GET','POST','PUT','PATCH','DELETE'].includes(req.method))return j(405,{error:'Método não permitido.'});
 if(req.method!=='GET'){
  if(req.headers['x-requested-with']!=='talentos')throw E(403,'Requisição bloqueada.');
  const o=req.headers.origin;if(o){let h;try{h=new URL(o).host}catch{}if(h!==req.headers.host){log('csrf_block',ip);throw E(403,'Origem não permitida.')}}}
-let s='';if(req.method!=='GET')for await(const ch of req){s+=ch;if(s.length>1e5){req.destroy();return}}
-let b={};try{b=s?JSON.parse(s):{}}catch{throw E(400,'JSON inválido.')}
-if(!b||typeof b!=='object'||Array.isArray(b))throw E(400,'Corpo inválido.');
 const tk=th(ck(req.headers.cookie)[CN]||''),ss=DB.sessions[tk],now=Date.now();let me=null;
 if(ss&&ss.exp>now&&ss.idle>now){me=DB.users.find(x=>x.id===ss.uid)||null;if(me)ss.idle=now+IDLE}
-j(200,await route(req.method,p,b,{me,ip,res,tk:ss?tk:'',pt:String(req.headers['x-platform-token']||'')}))
+let b={},raw=null,fname='';
+if(req.method==='PUT'&&p==='/api/cv'){
+ need(me,'cand');
+ if(+req.headers['content-length']>CVMAX){res.setHeader('Connection','close');throw E(413,'Arquivo muito grande (máximo 3 MB).')}
+ const ch=[];let n=0;for await(const x of req){n+=x.length;if(n>CVMAX){req.destroy();return}ch.push(x)}raw=Buffer.concat(ch);
+ try{fname=decodeURIComponent(String(req.headers['x-filename']||''))}catch{}
+}else{
+ let s='';if(req.method!=='GET')for await(const ch of req){s+=ch;if(s.length>1e5){req.destroy();return}}
+ try{b=s?JSON.parse(s):{}}catch{throw E(400,'JSON inválido.')}
+ if(!b||typeof b!=='object'||Array.isArray(b))throw E(400,'Corpo inválido.');
+}
+const out=await route(req.method,p,b,{me,ip,res,tk:ss?tk:'',pt:String(req.headers['x-platform-token']||''),raw,fname,q:new URLSearchParams(qs)});
+if(out&&out.__bin){res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type',out.type);res.setHeader('Content-Disposition','attachment; filename="'+out.name+'"');res.writeHead(200);return res.end(out.__bin)}
+j(200,out)
 }catch(e){if(e.c===429)log('rate_limit',ip);j(e.c||500,{error:e.c?e.m:'Erro interno.'});if(!e.c)console.error(e)}
 });
-srv.requestTimeout=15000;srv.headersTimeout=10000;srv.keepAliveTimeout=5000;srv.maxHeadersCount=50;
+srv.requestTimeout=60000;srv.headersTimeout=10000;srv.keepAliveTimeout=5000;srv.maxHeadersCount=50;
 process.on('unhandledRejection',e=>console.error('unhandledRejection',e));
 srv.listen(PORT,()=>{console.log('Talentos em http://localhost:'+PORT);if(!CODE)console.log('AVISO: defina RECRUITER_CODE para permitir o cadastro de recrutadores.')});
