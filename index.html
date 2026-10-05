@@ -2,15 +2,32 @@
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#15123a">
-<title>Talentos — Recrutamento por Insígnias</title>
+<title>Talentos — Vagas e recrutamento</title>
 <style>
 :root{--bg:#f5f6fb;--card:#fff;--tx:#1b1f2a;--mu:#667085;--bd:#e2e5ee;--pr:#4f46e5;--in:#f0f1f7;--ok:#16a34a;--no:#dc2626;--bz:#b9783f;--pt:#7d8aa3;--ou:#d99a00;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1219;--card:#181c26;--tx:#eceef5;--mu:#98a1b5;--bd:#2a3040;--pr:#818cf8;--in:#222838}}
 :root[data-theme="dark"]{--bg:#0f1219;--card:#181c26;--tx:#eceef5;--mu:#98a1b5;--bd:#2a3040;--pr:#818cf8;--in:#222838}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .w{max-width:920px;margin:0 auto;padding:14px}
-header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:6px 0 12px}
-.br{font-weight:800;font-size:19px}.br span{color:var(--pr)}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg);margin:-14px -14px 12px;padding:10px 14px;border-bottom:1px solid var(--bd)}
+#hd{display:flex;align-items:center;gap:8px}
+.br{display:flex;align-items:center;gap:8px;font:700 20px var(--serif);border:0;background:none;padding:0;color:var(--tx)}.br svg{flex:none}
+.mw{position:relative}
+.pb{display:flex;align-items:center;gap:8px;padding:3px 11px 3px 3px;border-radius:99px;max-width:200px}
+.pb .pn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av{flex:none;width:30px;height:30px;border-radius:50%;background:var(--pr);color:#fff;display:grid;place-items:center;font-weight:700}
+#mn{position:absolute;right:0;top:calc(100% + 8px);width:270px;max-width:calc(100vw - 28px);background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:0 18px 44px rgba(15,18,30,.28);padding:6px;z-index:30}
+#mn[hidden]{display:none}
+#mn .mh{padding:8px 12px 10px;border-bottom:1px solid var(--bd);margin-bottom:4px;display:flex;flex-direction:column;gap:2px}
+#mn .mh .mu{overflow:hidden;text-overflow:ellipsis}
+#mn button{display:block;width:100%;text-align:left;border:0;background:none;padding:10px 12px;border-radius:9px}
+#mn button:hover,#mn button:focus-visible{background:var(--in)}
+#mn button[aria-current]{color:var(--pr);font-weight:700}
+#mn hr{border:0;border-top:1px solid var(--bd);margin:4px 0}
+.pg{margin:14px 0 12px}.ph{font:700 26px/1.2 var(--serif);margin:4px 0 2px}.ph:focus{outline:none}
+.back{border:0;background:none;color:var(--pr);font-weight:600;padding:4px 0;margin:0}
+.tip{border:1px dashed var(--bd);border-radius:12px;padding:10px 14px;margin-bottom:12px;color:var(--mu);font-size:14px}
+@media(max-width:480px){.pb .pn{display:none}.pb{padding:3px 8px 3px 3px}.ph{font-size:22px}}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:12px}
 h3{margin:0 0 10px;font-size:16px}h2{margin:4px 0 12px;font-size:20px}
 label{display:block;font-size:13px;color:var(--mu);font-weight:600}
@@ -78,39 +95,27 @@ body.auth .w{max-width:none;padding:0}
 .hero h1{font:700 clamp(32px,4.8vw,56px)/1.06 var(--serif);letter-spacing:-.012em;margin:22px 0 14px}
 .hero h1 span{display:block}
 .sub{color:#cfcbf3;font-size:17px;line-height:1.55;max-width:44ch;margin:0}
-.hint{color:#a9a4dc;font-size:13px;margin:14px 0 0;max-width:52ch}
-.podium{--rx:0deg;--ry:0deg;display:flex;align-items:flex-end;gap:10px;max-width:500px;margin-top:34px;border-bottom:2px solid rgba(255,255,255,.14)}
-.blk small{font-size:inherit}
-.pd{flex:1;display:flex;flex-direction:column;align-items:center}
-.pd.g{--d:148px;--m1:#f6d56a;--m2:#b98a12;--m3:#fff0b3;--edge:#9a7209}
-.pd.s{--d:104px;--m1:#eef1f7;--m2:#8793a9;--m3:#ffffff;--edge:#6e7a90}
-.pd.b{--d:104px;--m1:#e5a870;--m2:#8a4f22;--m3:#f8cfa3;--edge:#6d3b17}
-.pd .medal{width:var(--d);height:var(--d);margin-bottom:8px;perspective:640px;animation:drop .9s cubic-bezier(.2,.75,.25,1) both}
-.pd.b .medal{animation-delay:.05s}.pd.s .medal{animation-delay:.3s}.pd.g .medal{animation-delay:.55s}
-.tilt{width:100%;height:100%;transform-style:preserve-3d;transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .18s ease-out}
-.coin{position:relative;width:100%;height:100%;transform-style:preserve-3d}
-.pd.g .coin{animation:spin 18s linear 1.6s infinite}
-.coin i{position:absolute;inset:0;border-radius:50%;background:var(--edge)}
-.coin .fc,.coin .bk{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;display:grid;place-items:center;background:conic-gradient(from 210deg,var(--m1),var(--m2),var(--m3),var(--m2),var(--m1))}
-.coin .fc{transform:translateZ(5px)}.coin .bk{transform:rotateY(180deg) translateZ(5px)}
-.coin .fc::before,.coin .bk::before{content:"";position:absolute;inset:9%;border-radius:50%;border:2px solid rgba(255,255,255,.55);box-shadow:inset 0 0 0 2px rgba(0,0,0,.12)}
-.coin span{font-size:calc(var(--d)*.2);letter-spacing:.04em;color:rgba(50,30,0,.78);text-shadow:0 1px 0 rgba(255,255,255,.55)}
-.blk{width:100%;border-radius:8px 8px 0 0;padding:12px 6px 0;text-align:center;background:linear-gradient(#3b3590,#262163);box-shadow:inset 0 1px 0 rgba(255,255,255,.18);color:#f3f1ff}
-.blk b{display:block;font:700 17px var(--serif)}.blk span{display:block;font-size:12px;color:#bdb8ee;margin-top:2px}
-.pd.g .blk{height:128px}.pd.s .blk{height:94px}.pd.b .blk{height:68px}
+.deck{--rx:0deg;--ry:0deg;position:relative;max-width:470px;height:310px;margin-top:38px;perspective:1000px}
+.dtilt{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .18s ease-out}
+.dc{position:absolute;left:0;width:86%;border-radius:16px;padding:14px 18px;color:#f3f1ff;background:linear-gradient(160deg,#403aa0,#29246f);border:1px solid rgba(255,255,255,.22);box-shadow:0 22px 44px rgba(4,3,26,.55);transform:translate3d(var(--x),var(--y),var(--z));animation:rise .8s cubic-bezier(.2,.75,.25,1) var(--dl) both,fl 7s ease-in-out calc(var(--dl) + .8s) infinite}
+.c1{--x:0%;--y:0px;--z:-80px;--dl:.05s}.c2{--x:7%;--y:104px;--z:0px;--dl:.25s}.c3{--x:14%;--y:204px;--z:70px;--dl:.45s}
+.dk{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#b3aee6;font-weight:700;margin-bottom:6px}
+.dc b{display:block;font:700 17px/1.25 var(--serif)}
+.dt{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}.dt span{font-size:12px;padding:2px 10px;border-radius:99px;background:rgba(255,255,255,.14);color:#e4e1fb}
+.ds{display:flex;gap:4px;list-style:none;padding:0;margin:10px 0 0}
+.ds li{flex:1;text-align:center;font-size:11px;color:#b3aee6;border-top:4px solid rgba(255,255,255,.22);padding-top:4px}
+.ds li.d{border-color:#4ade80;color:#e4e1fb}.ds li.c{border-color:#a5b4fc;color:#fff;font-weight:700}
 .authcard{color:var(--tx);max-width:410px;width:100%;justify-self:end;margin:0;box-shadow:0 24px 60px rgba(5,4,30,.55)}
 .authcard h2{font-family:var(--serif);font-size:24px}
-@keyframes drop{from{transform:translateY(-160px);opacity:0}to{transform:none;opacity:1}}
-@keyframes spin{to{transform:rotateY(360deg)}}
+@keyframes rise{from{opacity:0;transform:translate3d(var(--x),calc(var(--y) - 60px),calc(var(--z) - 140px))}to{opacity:1;transform:translate3d(var(--x),var(--y),var(--z))}}
+@keyframes fl{0%,100%{translate:0 0}50%{translate:0 -8px}}
 @media(max-width:860px){
 .stage{grid-template-columns:1fr;gap:24px;align-items:start;padding:20px 16px 32px}
 .authcard{justify-self:stretch;max-width:none}
-.pd.g{--d:104px}.pd.s,.pd.b{--d:74px}
-.pd.g .blk{height:92px}.pd.s .blk{height:68px}.pd.b .blk{height:50px}
-.blk b{font-size:15px}.blk span{font-size:11px}
-.podium{margin-top:22px;max-width:380px}.hint{display:none}.sub{font-size:16px}.ap{display:none}}
-@media(prefers-reduced-motion:reduce){.pd .medal,.pd.g .coin{animation:none}.tilt{transition:none}#toast{transition:none}}
-</style></head><body><div class="w"><header><div class="br">🏅 Talent<span>os</span></div><div id="hd"></div></header><div id="app"></div></div>
+.sub{font-size:16px}
+.deck{height:205px;margin-top:20px;max-width:380px}.c1{display:none}.c2{--y:0px}.c3{--y:100px}}
+@media(prefers-reduced-motion:reduce){.dc{animation:none}.dtilt{transition:none}#toast{transition:none}}
+</style></head><body><div class="w"><header><button class="br" onclick="goHome()" aria-label="Talentos, ir para as vagas"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" fill="#4f46e5"/><circle cx="12" cy="8.4" r="2.7" fill="#fff"/><path d="M6.4 18.2c.6-3.3 2.9-5 5.6-5s5 1.7 5.6 5z" fill="#fff"/></svg>Talentos</button><div id="hd"></div></header><div id="app"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <datalist id="dl-sk"></datalist><datalist id="dl-rl"></datalist><datalist id="dl-ar"></datalist>
 <script>
@@ -134,12 +139,28 @@ const fmtD=t=>new Date(t).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'s
 const fsz=n=>n<1048576?Math.max(1,Math.round(n/1024))+' KB':(n/1048576).toFixed(1).replace('.',',')+' MB';
 const fillT=(t,v)=>String(t).replace(/\{(\w+)\}/g,(m,k)=>k in v?v[k]:m);
 function toast(m){const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3800)}
-function setBell(){const b=$('#bn');if(b){b.textContent=S.unread||0;b.hidden=!S.unread}const t=$('#tb-avisos');if(t)t.textContent='Avisos'+(S.unread?` (${S.unread})`:'')}
+function setBell(){const b=$('#bn');if(b){b.textContent=S.unread||0;b.hidden=!S.unread}const t=$('#mi-avisos');if(t)t.textContent='Avisos'+(S.unread?` (${S.unread})`:'')}
 function resetAll(){S=null;P=J=null;jobs=[];apps=[];cands=[];NT=null;MG=null;IG=null;team=[];X.items=null;F={...defF};mv=null;lastMv={};stF='all';sel=null;applying=null;sec={}}
-const tabsHtml=t=>`<div class="tabs" role="tablist">${t.map(x=>`<button role="tab" ${x[0]==='avisos'?'id="tb-avisos"':''} aria-selected="${tab===x[0]}" class="${tab===x[0]?'on':''}" onclick="goTab('${x[0]}')">${x[1]}</button>`).join('')}</div>`;
+const CRL={admin:'Administrador',rh:'RH',recrutador:'Recrutador',gestor:'Gestor (somente leitura)'};
+const TITLES={perfil:'Editar currículo e perfil',cands:'Minhas candidaturas',avisos:'Avisos',ext:'Vagas de outras plataformas',seg:'Segurança',nova:'Nova vaga',msgs:'Mensagens automáticas',integ:'Integrações',equipe:'Equipe'};
+const menuItems=()=>S.role==='cand'?[['vagas','Vagas abertas'],['perfil','Editar currículo e perfil'],['cands','Minhas candidaturas'],['avisos','Avisos'],['ext','Vagas de outras plataformas'],['seg','Segurança']]
+:[['vagas','Vagas e ranking'],...(can('jobs')?[['nova','Nova vaga']]:[]),['msgs','Mensagens automáticas'],...(can('integ')?[['integ','Integrações']]:[]),...(can('team')?[['equipe','Equipe']]:[]),['seg','Segurança']];
+function hdHtml(){const c=S.role==='cand',nm=S.name||'',
+sub=c?esc(S.email||'Candidato'):`${esc(CRL[S.crole]||'Recrutador')} · ${esc(S.company.name)}<br>Plano ${esc(S.company.limits.name)} · ${S.company.jobsOpen}/${S.company.limits.jobs} vagas abertas`;
+const items=menuItems().map(([k,l])=>`<button role="menuitem"${k==='avisos'?' id="mi-avisos"':''}${tab===k?' aria-current="page"':''} onclick="goTab('${k}')">${k==='avisos'&&S.unread?l+' ('+S.unread+')':l}</button>`).join('');
+return`${c?`<button class="bell" onclick="goTab('avisos')" aria-label="Avisos"><span aria-hidden="true">🔔</span><i id="bn"${S.unread?'':' hidden'}>${S.unread||0}</i></button>`:''}<div class="mw"><button id="pbtn" class="pb" aria-haspopup="menu" aria-expanded="false" aria-controls="mn" aria-label="Menu do perfil de ${esc(nm)}" onclick="toggleMenu(event)"><span class="av" aria-hidden="true">${esc((nm.trim()[0]||'?').toUpperCase())}</span><span class="pn">${esc(nm.split(' ')[0])}</span><span aria-hidden="true">▾</span></button>
+<div id="mn" role="menu" aria-label="Menu do perfil" hidden><div class="mh"><b>${esc(nm)}</b><span class="mu">${sub}</span></div>${items}<hr><button role="menuitem" onclick="out()">Sair</button></div></div>`}
+function toggleMenu(e){if(e)e.stopPropagation();const m=$('#mn'),b=$('#pbtn');if(!m)return;const o=m.hidden;m.hidden=!o;b.setAttribute('aria-expanded',String(o));if(o)m.querySelector('button').focus()}
+function closeMenu(f){const m=$('#mn'),b=$('#pbtn');if(!m||m.hidden)return;m.hidden=true;b.setAttribute('aria-expanded','false');if(f)b.focus()}
+document.addEventListener('click',e=>{if(!e.target.closest('#mn,#pbtn'))closeMenu()});
+document.addEventListener('keydown',e=>{const m=$('#mn');if(!m||m.hidden)return;
+if(e.key==='Escape'){closeMenu(1);return}if(e.key==='Tab'){closeMenu();return}
+if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const b=[...m.querySelectorAll('button')],i=b.indexOf(document.activeElement);b[(i+(e.key==='ArrowDown'?1:-1)+b.length)%b.length].focus()}});
+const pgHd=t=>`<div class="pg"><button class="back" onclick="goTab('vagas')">← Voltar às vagas</button><h1 class="ph" tabindex="-1">${t}</h1></div>`;
+function goHome(){if(S)goTab('vagas')}
 async function syncRec(){try{const[j,a,c]=await Promise.all([api('GET','/jobs'),api('GET','/apps').catch(()=>apps),api('GET','/candidates').catch(()=>cands)]);jobs=j;apps=a;cands=c;S=await api('GET','/me');if(!mv)render()}catch(e){}}
 async function syncVagas(){if(S.role==='rec')return syncRec();try{[jobs,apps]=await Promise.all([api('GET','/jobs'),api('GET','/apps')]);if(tab==='vagas'&&!applying)render()}catch(e){}}
-function goTab(t){tab=t;applying=null;sel=null;mv=null;if(t==='nova')J=J||newJ();render();
+function goTab(t){tab=t;applying=null;sel=null;mv=null;if(t==='nova')J=J||newJ();render();scrollTo(0,0);const h=$('.ph');if(h)h.focus({preventScroll:true});
 if(t==='ext'&&!X.items)loadExt();if(t==='avisos')loadAv();if(t==='equipe')loadTeam();if(t==='msgs')loadMsgs();if(t==='integ')loadInteg();if(t==='cands')refreshApps();if(t==='vagas')syncVagas()}
 async function api(m,u,b){const r=await fetch('/api'+u,{method:m,credentials:'same-origin',headers:{'Content-Type':'application/json','X-Requested-With':'talentos'},body:b?JSON.stringify(b):undefined});
 const d=await r.json().catch(()=>({}));if(r.status===401&&S&&u!=='/me'){resetAll();render()}if(!r.ok)throw new Error(d.error||'Erro de comunicação com o servidor.');return d}
@@ -171,9 +192,9 @@ async function refresh(){jobs=await api('GET','/jobs');if(S.role==='rec')[apps,c
 async function init(){for(const k in SUG)$('#'+k).innerHTML=SUG[k].map(x=>`<option value="${x}">`).join('');
 if(location.hash.startsWith('#reset=')){rtok=location.hash.slice(7);mode='reset';history.replaceState(null,'',location.pathname)}
 if(!rtok){try{S=await api('GET','/me');await refresh()}catch(e){S=null}}go()}
-function go(){if(S){tab=S.role==='cand'?'perfil':'vagas';if(S.role==='cand')P=norm(clone(S.p));sel=null;applying=null}render()}
+function go(){if(S){tab='vagas';if(S.role==='cand')P=norm(clone(S.p));sel=null;applying=null}render()}
 function render(){document.body.classList.toggle('auth',!S);
-$('#hd').innerHTML=S?`${S.role==='cand'?`<button class="bell" onclick="goTab('avisos')" aria-label="Avisos"><span aria-hidden="true">🔔</span><i id="bn"${S.unread?'':' hidden'}>${S.unread||0}</i></button> `:''}<span class="mu">${esc(S.name)} · ${S.role==='rec'?'Recrutador · '+esc(S.company.name)+' · plano '+esc(S.company.limits.name)+' ('+S.company.jobsOpen+'/'+S.company.limits.jobs+' vagas)':'Candidato'}</span> <button class="sm" onclick="out()">Sair</button>`:'';
+$('#hd').innerHTML=S?hdHtml():'';
 $('#app').innerHTML=!S?vAuth():S.role==='cand'?vCand():vRec();
 fillCities(S?.role==='cand'&&tab==='perfil'?P.uf:tab==='nova'&&J?J.uf:'')}
 async function out(){try{await api('POST','/logout')}catch(e){}resetAll();render()}
@@ -181,8 +202,6 @@ const er=m=>{const e=$('#er');e.className='err';e.textContent=m};
 function setR(r){const k=['nm','em','pw'],v=k.map(i=>$('#'+i)?.value||'');role=r;note='';render();k.forEach((i,n)=>{const e=$('#'+i);if(e)e.value=v[n]})}
 function startReg(r){role=r;mode='reg';pend=null;note='';render()}
 function go2(m){mode=m;pend=null;note='';render()}
-const STAR={b:'★',s:'★★',g:'★★★'},LAY=Array.from({length:9},(_,i)=>`<i style="transform:translateZ(${i-4}px)"></i>`).join('');
-const podium=()=>[['Prata','s'],['Ouro','g'],['Bronze','b']].map(([n,k])=>`<div class="pd ${k}"><div class="medal" aria-hidden="true"><div class="tilt"><div class="coin">${LAY}<div class="fc"><span>${STAR[k]}</span></div><div class="bk"><span>${STAR[k]}</span></div></div></div></div><div class="blk"><b>${n}</b><span><small class="ap">a partir de </small>${TH.find(t=>t[1]===n)[0]} pontos</span></div></div>`).join('');
 function vAuth(){const r=mode==='reg',em='<label>E-mail<input id="em" type="email" autocomplete="email" maxlength="120"></label><br>';
 const pw=l=>`<label>${l}<input id="pw" type="password" maxlength="128" autocomplete="${mode==='login'?'current-password':'new-password'}"></label><br>`;
 const T={login:'Entrar',reg:'Criar conta',forgot:'Recuperar senha',reset:'Nova senha'}[mode],B={login:'Entrar',reg:'Cadastrar',forgot:'Enviar link',reset:'Salvar nova senha'}[mode];
@@ -192,11 +211,14 @@ const card=`<div class="card authcard"><h2>${pend?'Verificação em duas etapas'
 <button class="pri" style="width:100%" onclick="auth()">${pend?'Confirmar':B}</button>
 <p class="mu" style="text-align:center">${mode==='login'&&!pend?`<a href="#" onclick="go2('reg');return false">Criar conta</a> · <a href="#" onclick="go2('forgot');return false">Esqueci minha senha</a>`:`<a href="#" onclick="go2('login');return false">Voltar ao login</a>`}</p>
 ${mode==='login'&&!pend?`<p class="mu" style="text-align:center;margin-bottom:0">Vai contratar? <a href="#" onclick="startReg('rec');return false">Cadastre sua empresa</a></p>`:''}</div>`;
-return`<section class="stage"><div class="hero"><div class="mark"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#e0a81c"/><path d="M12 5.5l1.9 4 4.4.5-3.3 3 .9 4.3L12 15l-3.9 2.3.9-4.3-3.3-3 4.4-.5z" fill="#15123a"/></svg>Talentos</div>
-<h1><span>Seu talento vira insígnia.</span><span>A insígnia abre portas.</span></h1>
-<p class="sub">Monte seu perfil, ganhe bronze, prata ou ouro e seja encontrado pelas empresas que procuram o que você faz.</p>
-<div class="podium">${podium()}</div>
-<p class="hint">Os pontos vêm de experiência, habilidades, escolaridade, inglês e cursos.</p></div>${card}</section>`}
+return`<section class="stage"><div class="hero"><div class="mark"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="7" fill="#4f46e5"/><circle cx="12" cy="8.4" r="2.7" fill="#fff"/><path d="M6.4 18.2c.6-3.3 2.9-5 5.6-5s5 1.7 5.6 5z" fill="#fff"/></svg>Talentos</div>
+<h1><span>Sua próxima oportunidade</span><span>começa aqui.</span></h1>
+<p class="sub">Veja as vagas abertas, envie seu currículo e acompanhe cada etapa do processo seletivo, com aviso a cada novidade.</p>
+<div class="deck" aria-hidden="true"><div class="dtilt">
+<div class="dc c1"><div class="dk">Vaga aberta</div><b>Encontre vagas que combinam com você</b><div class="dt"><span>Remoto</span><span>Híbrido</span><span>Presencial</span></div></div>
+<div class="dc c2"><div class="dk">Acompanhe o processo</div><ol class="ds"><li class="d">Recebida</li><li class="d">Triagem</li><li class="c">Entrevista</li><li>Proposta</li></ol></div>
+<div class="dc c3"><div class="dk">🔔 Aviso</div><b>Sua candidatura avançou para a próxima etapa</b></div>
+</div></div></div>${card}</section>`}
 async function auth(){try{
 if(mode==='forgot'){await api('POST','/forgot',{email:$('#em').value});note='Se o e-mail estiver cadastrado, enviamos um link de recuperação (válido por 30 min). Confira também o spam.';mode='login';return render()}
 if(mode==='reset'){await api('POST','/reset',{token:rtok,password:$('#pw').value});rtok='';mode='login';note='Senha alterada! Entre com a nova senha.';return render()}
@@ -213,8 +235,7 @@ const chips=(o,k)=>{const O=o==='P'?P:J;return`<div class="chips">${O[k].map((s,
 function tag(o,k,el){const v=el.value.trim(),O=o==='P'?P:J;if(v&&!O[k].some(x=>x.toLowerCase()===v.toLowerCase()))O[k].push(v);render()}
 function mk(e){const d=e.value.replace(/\D/g,'').slice(0,11);e.value=d.length>10?d.replace(/(\d\d)(\d{5})(\d{4})/,'($1) $2-$3'):d.length>6?d.replace(/(\d\d)(\d{4})(\d*)/,'($1) $2-$3'):d.length>2?d.replace(/(\d\d)(\d*)/,'($1) $2'):d}
 /* ---------- candidato ---------- */
-function vCand(){const t=[['perfil','Meu perfil'],['vagas','Vagas abertas'],['ext','Outras plataformas'],['cands','Candidaturas'],['avisos','Avisos'+(S.unread?` (${S.unread})`:'')],['seg','Segurança']];
-return tabsHtml(t)+(tab==='perfil'?vPerfil():tab==='vagas'?vVagas():tab==='ext'?vExt():tab==='avisos'?vAv():tab==='seg'?vSeg():vMinhas())}
+function vCand(){return(tab==='vagas'?'':pgHd(TITLES[tab]||''))+(tab==='perfil'?vPerfil():tab==='vagas'?vVagas():tab==='ext'?vExt():tab==='avisos'?vAv():tab==='seg'?vSeg():vMinhas())}
 const sopt=(arr,v)=>arr.map(x=>`<option${v===x?' selected':''}>${esc(x)}</option>`).join('');
 const expF=(e,i)=>`<div class="it"><div class="g"><label>Cargo<input list="dl-rl" value="${esc(e.role)}" maxlength="80" onchange="P.exps[${i}].role=this.value"></label><label>Empresa<input value="${esc(e.co)}" maxlength="80" onchange="P.exps[${i}].co=this.value"></label><label>Início<input type="month" placeholder="AAAA-MM" value="${esc(e.start)}" onchange="P.exps[${i}].start=this.value;expY(${i})"></label><label>Término (vazio = atual)<input type="month" placeholder="AAAA-MM" value="${esc(e.end)}" onchange="P.exps[${i}].end=this.value;expY(${i})"></label><label>Anos de experiência<input type="number" min="0" step="0.5" value="${esc(e.years)}" onchange="P.exps[${i}].years=this.value"></label></div><label>Principais atividades e resultados<textarea rows="2" maxlength="400" onchange="P.exps[${i}].desc=this.value">${esc(e.desc)}</textarea></label><div style="text-align:right;margin-top:6px"><button class="sm" onclick="P.exps.splice(${i},1);render()">Remover</button></div></div>`;
 function expY(i){const e=P.exps[i];if(e.start){const[a,b]=e.start.split('-').map(Number),n=new Date(),[c,d]=e.end?e.end.split('-').map(Number):[n.getFullYear(),n.getMonth()+1];e.years=Math.max(0,Math.round((((c-a)*12+(d-b))/12)*10)/10)}render()}
@@ -259,15 +280,19 @@ return`<div class="card"><div class="row"><div><h3 style="margin:0">${esc(j.titl
 <p>${esc(j.desc)}</p><div class="chips">${j.skills.map(s=>`<span class="chip ${have.includes(s.toLowerCase())?'ok':''}">${esc(s)}</span>`).join('')}</div>
 ${mine?`<span class="mu">✓ Candidatura enviada. Etapa atual: <b>${esc(mine.status)}</b></span>`:applying===j.id?`<div style="margin-top:10px"><h3>Formulário da vaga</h3>${j.qs.map(qf).join('<br>')}<br><button class="pri" onclick="apply('${j.id}')">Enviar candidatura</button> <button onclick="applying=null;updJobs()">Cancelar</button></div>`:`<button class="pri" onclick="applying='${j.id}';updJobs()">Candidatar-se</button>`}</div>`}).join('')||'<div class="card mu">Nenhuma vaga com esses filtros. Tente remover algum deles.</div>')}
 const updJobs=()=>{const el=$('#jl');if(el)el.innerHTML=jobList()};
+let fOpen=false;
 function vVagas(){const ufs=[...new Set(jobs.map(j=>j.uf).filter(Boolean))].sort(),areas=[...new Set(jobs.map(j=>j.area).filter(Boolean))].sort();
 const o=(arr,v,all)=>`<option value="">${all}</option>`+arr.map(x=>`<option value="${esc(x)}"${v===x?' selected':''}>${esc(x)}</option>`).join('');
-return`<div class="card"><div class="g fg"><label>Buscar<input type="search" placeholder="Cargo, empresa ou habilidade" value="${esc(F.q)}" oninput="F.q=this.value;updJobs()"></label>
+const p=S.p,thin=!(p.skills||[]).length&&!(p.exps||[]).length&&!S.cv,act=F.uf||F.mode||F.area||F.min||F.sort!=='match';
+return`<div class="pg"><h1 class="ph" tabindex="-1">Vagas abertas</h1></div>`+(thin?`<div class="tip">Complete seu currículo para ver o quanto cada vaga combina com você. <a href="#" onclick="goTab('perfil');return false">Editar currículo e perfil</a></div>`:'')+
+`<div class="card"><label>Buscar<input type="search" placeholder="Cargo, empresa ou habilidade" value="${esc(F.q)}" oninput="F.q=this.value;updJobs()"></label>
+<details${act||fOpen?' open':''} ontoggle="fOpen=this.open"><summary>Filtros${act?' (ativos)':''}</summary><div class="g fg" style="margin-top:8px">
 <label>Estado<select onchange="F.uf=this.value;updJobs()">${o(ufs,F.uf,'Todos')}</select></label>
 <label>Modalidade<select onchange="F.mode=this.value;updJobs()">${o(MD,F.mode,'Todas')}</select></label>
 <label>Área<select onchange="F.area=this.value;updJobs()">${o(areas,F.area,'Todas')}</select></label>
 <label>Compatibilidade mínima<select onchange="F.min=+this.value;updJobs()">${[0,30,50,70].map(n=>`<option value="${n}"${F.min===n?' selected':''}>${n?n+'% ou mais':'Qualquer'}</option>`).join('')}</select></label>
 <label>Ordenar por<select onchange="F.sort=this.value;updJobs()"><option value="match"${F.sort==='match'?' selected':''}>Mais compatíveis</option><option value="new"${F.sort==='new'?' selected':''}>Mais recentes</option></select></label></div>
-<button class="sm" onclick="F={...defF};render()">Limpar filtros</button></div><div id="jl">${jobList()}</div>`}
+<button class="sm" onclick="F={...defF};render()">Limpar filtros</button></details></div><div id="jl">${jobList()}</div>`}
 async function apply(id){const j=jobs.find(x=>x.id===id);try{await api('POST','/apply',{jobId:id,answers:j.qs.map((q,i)=>$(`[name=q${i}]`).value)});apps=await api('GET','/apps');applying=null;updJobs();toast('Candidatura enviada. Você será avisado a cada nova etapa.')}catch(e){alert(e.message)}}
 /* ---------- vagas de outras plataformas ---------- */
 const SRCL={'':'Todas',greenhouse:'Greenhouse',lever:'Lever',adzuna:'Adzuna',remotive:'Remotive'};
@@ -286,7 +311,7 @@ function vExt(){return`<div class="card"><div class="g fg"><label>Buscar<input t
 <p class="mu" style="margin-bottom:0">Vagas publicadas em outras plataformas. Ao clicar, você vai para o site de origem para se candidatar.</p></div><div id="xl">${extList()}</div>`}
 /* ---------- avisos e candidaturas ---------- */
 async function loadAv(){try{const d=await api('GET','/notifications');NT=d.items;render();if(d.unread){await api('POST','/notifications/read',{});S.unread=0;setBell()}}catch(e){NT=[];render()}}
-const vAv=()=>NT===null?'<div class="card mu">Carregando…</div>':NT.length?NT.map(n=>`<div class="card nt${n.r?'':' new'}"><div class="row"><b>${esc(n.title)}</b><span class="mu">${fmtD(n.t)}</span></div><pre class="msg">${esc(n.body)}</pre></div>`).join(''):'<div class="card mu">Nenhum aviso por aqui ainda. Quando uma empresa mover a sua candidatura de etapa, você recebe a atualização nesta aba.</div>';
+const vAv=()=>NT===null?'<div class="card mu">Carregando…</div>':NT.length?NT.map(n=>`<div class="card nt${n.r?'':' new'}"><div class="row"><b>${esc(n.title)}</b><span class="mu">${fmtD(n.t)}</span></div><pre class="msg">${esc(n.body)}</pre></div>`).join(''):'<div class="card mu">Nenhum aviso por aqui ainda. Quando uma empresa mover a sua candidatura de etapa, você recebe a atualização nesta página.</div>';
 async function refreshApps(){try{apps=await api('GET','/apps');render()}catch(e){}}
 function vMinhas(){return apps.length?apps.map(a=>{const i=STEPS.indexOf(a.status),rej=a.status==='Recusado';
 return`<div class="card"><div class="row"><div><b>${esc(a.jobTitle||'Vaga')}</b><div class="mu">${esc(a.company||'')}${a.company?' · ':''}enviada em ${esc(a.date)}</div></div>${rej?'<span class="chip no">Processo encerrado</span>':''}</div>
@@ -307,8 +332,8 @@ const b=await r.blob(),m=/filename="([^"]+)"/.exec(r.headers.get('Content-Dispos
 async function rmCV(){if(!confirm('Remover o seu currículo do sistema?'))return;try{S=await api('DELETE','/cv');render();toast('Currículo removido')}catch(e){alert(e.message)}}
 /* ---------- recrutador ---------- */
 const can=k=>({jobs:['admin','rh'],move:['admin','rh','recrutador'],team:['admin'],integ:['admin']}[k]||[]).includes(S.crole);
-function vRec(){const t=[['vagas','Vagas e ranking'],...(can('jobs')?[['nova','Nova vaga']]:[]),['msgs','Mensagens'],...(can('integ')?[['integ','Integrações']]:[]),...(can('team')?[['equipe','Equipe']]:[]),['seg','Segurança']];
-return tabsHtml(t)+(S.req2&&!S.t2?'<div class="card" style="border-color:var(--no)">🔒 Ative a verificação em duas etapas na aba Segurança para acessar os candidatos.</div>':'')+(tab==='seg'?vSeg():tab==='nova'?vNova():tab==='equipe'?vEquipe():tab==='msgs'?vMsgs():tab==='integ'?vInteg():sel?vRank():vLista())}
+function vRec(){const hd=tab==='vagas'?'':pgHd(TITLES[tab]||'');
+return hd+(S.req2&&!S.t2?`<div class="card" style="border-color:var(--no)">🔒 Ative a verificação em duas etapas para acessar os candidatos. <a href="#" onclick="goTab('seg');return false">Abrir Segurança</a></div>`:'')+(tab==='seg'?vSeg():tab==='nova'?vNova():tab==='equipe'?vEquipe():tab==='msgs'?vMsgs():tab==='integ'?vInteg():sel?vRank():vLista())}
 /* ---------- equipe (somente administrador) ---------- */
 const CR={admin:'Administrador',rh:'RH',recrutador:'Recrutador',gestor:'Gestor (somente leitura)'};
 const crOpts=v=>Object.entries(CR).map(([k,l])=>`<option value="${k}"${v===k?' selected':''}>${l}</option>`).join('');
@@ -324,7 +349,7 @@ ${team.map(u=>`<div class="row" style="padding:10px 0;border-top:1px solid var(-
 async function invite(){try{await api('POST','/team',{name:$('#tn').value,email:$('#te').value,crole:$('#tr').value});S=await api('GET','/me');await loadTeam();const e=$('#er');if(e){e.className='mu';e.textContent='Convite enviado.'}}catch(e){er(e.message)}}
 async function setRole(id,r){try{await api('PATCH','/team/'+id,{crole:r});if(id===S.id)S=await api('GET','/me');await loadTeam()}catch(e){alert(e.message);loadTeam()}}
 async function delMember(id){const u=team.find(x=>x.id===id);if(!u||!confirm('Remover '+u.name+' da equipe? O acesso será encerrado imediatamente.'))return;try{await api('DELETE','/team/'+id);S=await api('GET','/me');await loadTeam()}catch(e){alert(e.message)}}
-function vLista(){return jobs.map(j=>`<div class="card row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${j.status==='open'?'':'🔒 Encerrada · '}${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · ${apps.filter(a=>a.jobId===j.id).length} candidatura(s)</span></div><div><button class="pri" onclick="openRank('${j.id}')">Ver melhores candidatos</button> ${can('jobs')?`<button onclick="toggleJ('${j.id}','${j.status==='open'?'closed':'open'}')">${j.status==='open'?'Encerrar':'Reabrir'}</button>`:''}</div></div>`).join('')||'<div class="card mu">Crie sua primeira vaga.</div>'}
+function vLista(){const c=S.company;return`<div class="pg"><h1 class="ph" tabindex="-1">Vagas e ranking</h1><span class="mu">Plano ${esc(c.limits.name)} · ${c.jobsOpen}/${c.limits.jobs} vagas abertas</span></div>`+(jobs.map(j=>`<div class="card row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${j.status==='open'?'':'🔒 Encerrada · '}${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · ${apps.filter(a=>a.jobId===j.id).length} candidatura(s)</span></div><div><button class="pri" onclick="openRank('${j.id}')">Ver melhores candidatos</button> ${can('jobs')?`<button onclick="toggleJ('${j.id}','${j.status==='open'?'closed':'open'}')">${j.status==='open'?'Encerrar':'Reabrir'}</button>`:''}</div></div>`).join('')||'<div class="card mu">Crie sua primeira vaga.</div>')}
 function vNova(){return`<div class="card"><h3>Dados da vaga</h3><div class="g"><label>Título<input list="dl-rl" value="${esc(J.title)}" onchange="J.title=this.value"></label><label>Área<input list="dl-ar" value="${esc(J.area)}" onchange="J.area=this.value"></label>${locF('J')}<label>Modalidade<select onchange="J.mode=this.value">${MD.map(x=>`<option${J.mode===x?' selected':''}>${x}</option>`).join('')}</select></label><label>Anos mínimos de experiência<input type="number" min="0" value="${J.minYears}" onchange="J.minYears=+this.value"></label><label>Escolaridade mínima<select onchange="J.minEdu=this.value">${Object.keys(EDU).map(x=>`<option${J.minEdu===x?' selected':''}>${x}</option>`).join('')}</select></label></div>
 <label>Descrição<textarea rows="3" onchange="J.desc=this.value">${esc(J.desc)}</textarea></label></div>
 <div class="card"><h3>Habilidades exigidas</h3>${chips('J','skills')}</div>
@@ -395,7 +420,7 @@ async function saveMsgs(){try{MG=await api('PUT','/messages',{msgs:MG.msgs});ren
 const PL={greenhouse:'Greenhouse',lever:'Lever'};
 async function loadInteg(){IGerr='';IGmsg='';try{IG=await api('GET','/integrations')}catch(e){IGerr=e.message}render()}
 function vInteg(){if(IGerr)return`<div class="card err">${esc(IGerr)}</div>`;if(!IG)return'<div class="card mu">Carregando…</div>';
-return`<div class="card"><h3>Vagas de outras plataformas</h3><p class="mu" style="margin-top:0">Conecte a página de vagas da sua empresa. As vagas aparecem para todos os candidatos na aba Outras plataformas, com link para se candidatar no site de origem.</p>
+return`<div class="card"><h3>Vagas de outras plataformas</h3><p class="mu" style="margin-top:0">Conecte a página de vagas da sua empresa. As vagas aparecem para todos os candidatos em Vagas de outras plataformas (menu do perfil), com link para se candidatar no site de origem.</p>
 ${IG.items.map(x=>`<div class="row it"><div><b>${esc(x.label)}</b><div class="mu">${PL[x.type]} · ${esc(x.slug)}</div></div><button class="sm" onclick="delInteg('${x.id}')">Desconectar</button></div>`).join('')||'<p class="mu">Nenhuma plataforma conectada.</p>'}
 <div class="g"><label>Plataforma<select id="it"><option value="greenhouse">Greenhouse</option><option value="lever">Lever</option></select></label><label>Identificador<input id="is" maxlength="60" placeholder="ex.: minhaempresa"></label><label>Nome exibido (opcional)<input id="il" maxlength="60" placeholder="${esc(S.company.name)}"></label></div>
 <p class="mu">O identificador é o final do endereço da sua página de vagas: boards.greenhouse.io/<b>identificador</b> ou jobs.lever.co/<b>identificador</b>.</p>
@@ -407,6 +432,6 @@ async function delInteg(id){if(!confirm('Desconectar esta plataforma? As vagas d
 setInterval(async()=>{if(!S||S.role!=='cand'||document.hidden)return;
 try{const m=await api('GET','/me'),up=m.unread>(S.unread||0);S.unread=m.unread;setBell();
 if(up){toast('Você tem uma atualização na sua candidatura');apps=await api('GET','/apps');if(tab==='cands')render();else if(tab==='avisos')loadAv()}}catch(e){}},45000);
-if(!matchMedia('(prefers-reduced-motion: reduce)').matches){let raf=0;addEventListener('pointermove',e=>{if(S||raf)return;raf=requestAnimationFrame(()=>{raf=0;const p=$('.podium');if(!p)return;p.style.setProperty('--ry',((e.clientX/innerWidth-.5)*40)+'deg');p.style.setProperty('--rx',(-(e.clientY/innerHeight-.5)*24)+'deg')})},{passive:true})}
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches){let raf=0;addEventListener('pointermove',e=>{if(S||raf)return;raf=requestAnimationFrame(()=>{raf=0;const p=$('.deck');if(!p)return;p.style.setProperty('--ry',((e.clientX/innerWidth-.5)*28)+'deg');p.style.setProperty('--rx',(-(e.clientY/innerHeight-.5)*16)+'deg')})},{passive:true})}
 init();
 </script></body></html>
