@@ -26,6 +26,11 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-
 #mn hr{border:0;border-top:1px solid var(--bd);margin:4px 0}
 .pg{margin:14px 0 12px}.ph{font:700 26px/1.2 var(--serif);margin:4px 0 2px}.ph:focus{outline:none}
 .back{border:0;background:none;color:var(--pr);font-weight:600;padding:4px 0;margin:0}
+.fl{display:grid;grid-template-columns:minmax(0,400px) 1fr;gap:18px;align-items:start}
+.fl canvas{display:block;max-width:100%;max-height:74vh;width:auto;height:auto;border-radius:12px;border:1px solid var(--bd);background:var(--in)}
+.flf{display:flex;flex-direction:column;gap:10px}.fb{display:flex;flex-wrap:wrap;gap:8px}
+.card.hl{outline:3px solid var(--pr);outline-offset:2px}
+@media(max-width:760px){.fl{grid-template-columns:1fr}.fl canvas{margin:0 auto}}
 .tip{border:1px dashed var(--bd);border-radius:12px;padding:10px 14px;margin-bottom:12px;color:var(--mu);font-size:14px}
 @media(max-width:480px){.pb .pn{display:none}.pb{padding:3px 8px 3px 3px}.ph{font-size:22px}}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:12px}
@@ -140,7 +145,7 @@ const fsz=n=>n<1048576?Math.max(1,Math.round(n/1024))+' KB':(n/1048576).toFixed(
 const fillT=(t,v)=>String(t).replace(/\{(\w+)\}/g,(m,k)=>k in v?v[k]:m);
 function toast(m){const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3800)}
 function setBell(){const b=$('#bn');if(b){b.textContent=S.unread||0;b.hidden=!S.unread}const t=$('#mi-avisos');if(t)t.textContent='Avisos'+(S.unread?` (${S.unread})`:'')}
-function resetAll(){S=null;P=J=null;jobs=[];apps=[];cands=[];NT=null;MG=null;IG=null;team=[];X.items=null;F={...defF};mv=null;lastMv={};stF='all';sel=null;applying=null;sec={}}
+function resetAll(){FL=null;HL='';S=null;P=J=null;jobs=[];apps=[];cands=[];NT=null;MG=null;IG=null;team=[];X.items=null;F={...defF};mv=null;lastMv={};stF='all';sel=null;applying=null;sec={}}
 const CRL={admin:'Administrador',rh:'RH',recrutador:'Recrutador',gestor:'Gestor (somente leitura)'};
 const TITLES={perfil:'Editar currículo e perfil',cands:'Minhas candidaturas',avisos:'Avisos',ext:'Vagas de outras plataformas',seg:'Segurança',nova:'Nova vaga',msgs:'Mensagens automáticas',integ:'Integrações',equipe:'Equipe'};
 const menuItems=()=>S.role==='cand'?[['vagas','Vagas abertas'],['perfil','Editar currículo e perfil'],['cands','Minhas candidaturas'],['avisos','Avisos'],['ext','Vagas de outras plataformas'],['seg','Segurança']]
@@ -160,7 +165,7 @@ const pgHd=t=>`<div class="pg"><button class="back" onclick="goTab('vagas')">←
 function goHome(){if(S)goTab('vagas')}
 async function syncRec(){try{const[j,a,c]=await Promise.all([api('GET','/jobs'),api('GET','/apps').catch(()=>apps),api('GET','/candidates').catch(()=>cands)]);jobs=j;apps=a;cands=c;S=await api('GET','/me');if(!mv)render()}catch(e){}}
 async function syncVagas(){if(S.role==='rec')return syncRec();try{[jobs,apps]=await Promise.all([api('GET','/jobs'),api('GET','/apps')]);if(tab==='vagas'&&!applying)render()}catch(e){}}
-function goTab(t){tab=t;applying=null;sel=null;mv=null;if(t==='nova')J=J||newJ();render();scrollTo(0,0);const h=$('.ph');if(h)h.focus({preventScroll:true});
+function goTab(t){tab=t;applying=null;sel=null;mv=null;HL='';if(t==='nova'){FL=null;J=J||newJ()}render();scrollTo(0,0);const h=$('.ph');if(h)h.focus({preventScroll:true});
 if(t==='ext'&&!X.items)loadExt();if(t==='avisos')loadAv();if(t==='equipe')loadTeam();if(t==='msgs')loadMsgs();if(t==='integ')loadInteg();if(t==='cands')refreshApps();if(t==='vagas')syncVagas()}
 async function api(m,u,b){const r=await fetch('/api'+u,{method:m,credentials:'same-origin',headers:{'Content-Type':'application/json','X-Requested-With':'talentos'},body:b?JSON.stringify(b):undefined});
 const d=await r.json().catch(()=>({}));if(r.status===401&&S&&u!=='/me'){resetAll();render()}if(!r.ok)throw new Error(d.error||'Erro de comunicação com o servidor.');return d}
@@ -189,14 +194,152 @@ if(!l){el.outerHTML=`<input id="city" value="${esc(O.city)}" placeholder="Digite
 if(O.city&&!l.includes(O.city))l=[O.city,...l];
 el.innerHTML='<option value="">Selecione a cidade</option>'+l.map(x=>`<option${x===O.city?' selected':''}>${esc(x)}</option>`).join('')}
 async function refresh(){jobs=await api('GET','/jobs');if(S.role==='rec')[apps,cands]=await Promise.all([api('GET','/apps').catch(()=>[]),api('GET','/candidates').catch(()=>[])]);else{apps=await api('GET','/apps');cands=[]}}
+/* ---------- QR code (correção M, modo bytes, versões 1–10) ---------- */
+const QR=(()=>{
+const ECC=[10,16,26,18,24,16,18,22,22,26],NB=[1,1,2,2,4,4,4,5,5,5];
+const mul=(x,y)=>{let z=0;for(let i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11D);z^=((y>>>i)&1)*x}return z};
+const rsDiv=d=>{const r=new Array(d).fill(0);r[d-1]=1;let root=1;for(let i=0;i<d;i++){for(let j=0;j<d;j++){r[j]=mul(r[j],root);if(j+1<d)r[j]^=r[j+1]}root=mul(root,2)}return r};
+const rsRem=(data,div)=>{const r=div.map(()=>0);for(const b of data){const f=b^r.shift();r.push(0);div.forEach((c,i)=>{r[i]^=mul(c,f)})}return r};
+const raw=v=>{let r=(16*v+128)*v+64;if(v>=2){const n=Math.floor(v/7)+2;r-=(25*n-10)*n-55;if(v>=7)r-=36}return r};
+const dataCw=v=>Math.floor(raw(v)/8)-ECC[v-1]*NB[v-1];
+const bit=(x,i)=>((x>>>i)&1)!==0;
+const COND=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,(x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,(x,y)=>x*y%2+x*y%3===0,(x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+function make(text){
+const bytes=[...new TextEncoder().encode(text)];let ver=0;
+for(let v=1;v<=10;v++)if(4+(v<10?8:16)+bytes.length*8<=dataCw(v)*8){ver=v;break}
+if(!ver)throw new Error('Link longo demais para o QR code.');
+const bits=[],put=(val,n)=>{for(let i=n-1;i>=0;i--)bits.push((val>>>i)&1)};
+put(4,4);put(bytes.length,ver<10?8:16);bytes.forEach(b=>put(b,8));
+put(0,Math.min(4,dataCw(ver)*8-bits.length));while(bits.length%8)bits.push(0);
+const data=[];for(let i=0;i<bits.length;i+=8){let x=0;for(let j=0;j<8;j++)x=(x<<1)|bits[i+j];data.push(x)}
+for(let pad=0xEC;data.length<dataCw(ver);pad^=0xEC^0x11)data.push(pad);
+const nb=NB[ver-1],el=ECC[ver-1],rc=Math.floor(raw(ver)/8),ns=nb-rc%nb,sl=Math.floor(rc/nb),div=rsDiv(el),blocks=[];
+for(let i=0,k=0;i<nb;i++){const d=data.slice(k,k+sl-el+(i<ns?0:1));k+=d.length;const e=rsRem(d,div);if(i<ns)d.push(0);blocks.push(d.concat(e))}
+const cw=[];for(let i=0;i<blocks[0].length;i++)blocks.forEach((b,j)=>{if(i!==sl-el||j>=ns)cw.push(b[i])});
+const n=ver*4+17,M=[],Fn=[];for(let y=0;y<n;y++){M.push(new Array(n).fill(false));Fn.push(new Array(n).fill(false))}
+const set=(x,y,v)=>{M[y][x]=v;Fn[y][x]=true};
+for(let i=0;i<n;i++){set(6,i,i%2===0);set(i,6,i%2===0)}
+const finder=(cx,cy)=>{for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const d=Math.max(Math.abs(dx),Math.abs(dy)),x=cx+dx,y=cy+dy;if(x>=0&&x<n&&y>=0&&y<n)set(x,y,d!==2&&d!==4)}};
+finder(3,3);finder(n-4,3);finder(3,n-4);
+const al=ver===1?[]:(()=>{const c=Math.floor(ver/7)+2,st=ver===32?26:Math.ceil((ver*4+4)/(c*2-2))*2,r=[6];for(let p=n-7;r.length<c;p-=st)r.splice(1,0,p);return r})();
+for(let i=0;i<al.length;i++)for(let j=0;j<al.length;j++){if((i===0&&j===0)||(i===0&&j===al.length-1)||(i===al.length-1&&j===0))continue;
+for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)set(al[i]+dx,al[j]+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1)}
+const drawFmt=mk=>{const d=mk;let r=d;for(let i=0;i<10;i++)r=(r<<1)^((r>>>9)*0x537);const bs=((d<<10)|r)^0x5412;
+for(let i=0;i<=5;i++)set(8,i,bit(bs,i));set(8,7,bit(bs,6));set(8,8,bit(bs,7));set(7,8,bit(bs,8));for(let i=9;i<15;i++)set(14-i,8,bit(bs,i));
+for(let i=0;i<8;i++)set(n-1-i,8,bit(bs,i));for(let i=8;i<15;i++)set(8,n-15+i,bit(bs,i));set(8,n-8,true)};
+drawFmt(0);
+if(ver>=7){let r=ver;for(let i=0;i<12;i++)r=(r<<1)^((r>>>11)*0x1F25);const bs=(ver<<12)|r;for(let i=0;i<18;i++){const c=bit(bs,i),a=n-11+i%3,b=Math.floor(i/3);set(a,b,c);set(b,a,c)}}
+let k=0;for(let right=n-1;right>=1;right-=2){if(right===6)right=5;for(let v=0;v<n;v++)for(let j=0;j<2;j++){const x=right-j,up=((right+1)&2)===0,y=up?n-1-v:v;if(!Fn[y][x]&&k<cw.length*8){M[y][x]=bit(cw[k>>>3],7-(k&7));k++}}}
+const apply=mk=>{for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(!Fn[y][x]&&COND[mk](x,y))M[y][x]=!M[y][x]};
+const penalty=()=>{let p=0,dark=0;const L=[];for(let y=0;y<n;y++){let s='';for(let x=0;x<n;x++){const v=M[y][x];s+=v?'1':'0';if(v)dark++}L.push(s)}
+for(let x=0;x<n;x++){let s='';for(let y=0;y<n;y++)s+=M[y][x]?'1':'0';L.push(s)}
+for(const s of L){(s.match(/0{5,}|1{5,}/g)||[]).forEach(q=>{p+=q.length-2});for(let i=0;i+11<=n;i++){const w=s.substr(i,11);if(w==='10111010000'||w==='00001011101')p+=40}}
+for(let y=0;y<n-1;y++)for(let x=0;x<n-1;x++){const v=M[y][x];if(v===M[y][x+1]&&v===M[y+1][x]&&v===M[y+1][x+1])p+=3}
+return p+(Math.ceil(Math.abs(dark*20-n*n*10)/(n*n))-1)*10};
+let best=0,bp=1e9;for(let mk=0;mk<8;mk++){apply(mk);drawFmt(mk);const p=penalty();if(p<bp){bp=p;best=mk}apply(mk)}
+apply(best);drawFmt(best);
+return{n,ver,get:(x,y)=>M[y][x]}}
+return{make}})();
+/* ---------- imagem de divulgação (canvas) ---------- */
+const PAL={azul:{n:'Azul profissional',a:'#1e1b4b',b:'#4338ca',fg:'#ffffff',mu:'#c7d2fe',ac:'#fbbf24',pt:'#1f1300'},
+laranja:{n:'Laranja energia',a:'#7c2d12',b:'#c2410c',fg:'#ffffff',mu:'#ffedd5',ac:'#fde047',pt:'#2a1a00'},
+verde:{n:'Verde',a:'#052e16',b:'#15803d',fg:'#ffffff',mu:'#dcfce7',ac:'#fde047',pt:'#2a1f00'},
+escuro:{n:'Escuro elegante',a:'#0b0f1a',b:'#1f2937',fg:'#f9fafb',mu:'#cbd5e1',ac:'#d4af37',pt:'#1a1400'},
+claro:{n:'Claro',a:'#f8fafc',b:'#e0e7ff',fg:'#111827',mu:'#475569',ac:'#4f46e5',pt:'#ffffff'}};
+const SERIF='"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif',SANS='-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif',MONO='ui-monospace,Menlo,Consolas,monospace';
+let FL=null,flRaf=0;
+const flCode=j=>j.id.replace(/-/g,'').slice(0,10),flUrl=j=>location.origin+'/v/'+flCode(j);
+function rrect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function wrapT(c,t,w){const out=[];let cur='';for(let word of String(t).split(/\s+/).filter(Boolean)){
+while(c.measureText(word).width>w){let i=word.length-1;while(i>1&&c.measureText(word.slice(0,i)).width>w)i--;if(cur){out.push(cur);cur=''}out.push(word.slice(0,i));word=word.slice(i)}
+const x=cur?cur+' '+word:word;if(!cur||c.measureText(x).width<=w)cur=x;else{out.push(cur);cur=word}}if(cur)out.push(cur);return out}
+function fitT(c,t,font,sizes,w,max){let lines=[],s=sizes[sizes.length-1];for(const z of sizes){c.font=font(z);lines=wrapT(c,t,w);s=z;if(lines.length<=max)return{s,lines}}
+lines=lines.slice(0,max);if(lines.length){let l=lines[lines.length-1];while(l.length>1&&c.measureText(l+'…').width>w)l=l.slice(0,-1);lines[lines.length-1]=l+'…'}return{s,lines}}
+function drawQR(c,q,x,y,px){const m=Math.max(2,Math.floor(px/(q.n+8))),w=m*(q.n+8);c.fillStyle='#ffffff';rrect(c,x,y,w,w,m*3);c.fill();c.fillStyle='#000000';
+for(let j=0;j<q.n;j++)for(let i=0;i<q.n;i++)if(q.get(i,j))c.fillRect(x+m*(i+4),y+m*(j+4),m,m);return w}
+function drawFlyer(cv,d,job,fmt,qr,url,company){
+const story=fmt==='story',W=1080,H=story?1920:1080,P=story?84:68,pal=PAL[d.mood]||PAL.azul,c=cv.getContext('2d');cv.width=W;cv.height=H;
+const g=c.createLinearGradient(0,0,W*.6,H);g.addColorStop(0,pal.a);g.addColorStop(1,pal.b);c.fillStyle=g;c.fillRect(0,0,W,H);
+c.globalAlpha=.12;c.fillStyle=pal.ac;c.beginPath();c.arc(W-70,story?230:120,story?330:250,0,7);c.fill();
+c.globalAlpha=.07;c.fillStyle=pal.fg;c.beginPath();c.arc(40,H-(story?560:400),story?380:300,0,7);c.fill();c.globalAlpha=1;
+const CW=W-2*P;c.textBaseline='alphabetic';c.textAlign='left';
+// QR (ancorado embaixo)
+const qpx=story?430:262,qw=Math.floor(qpx/(qr.n+8))*(qr.n+8),qy=H-P-qw,yMax=qy-(story?60:34);
+drawQR(c,qr,P,qy,qpx);
+const tx=P+qw+(story?44:34),tw=W-P-tx;
+c.fillStyle=pal.fg;let f=fitT(c,d.cta||'Escaneie e candidate-se',z=>`800 ${z}px ${SANS}`,story?[50,44,38,34]:[40,36,32,28],tw,3);
+let ty=qy+(story?64:48);c.font=`800 ${f.s}px ${SANS}`;f.lines.forEach(l=>{c.fillText(l,tx,ty);ty+=f.s*1.18});
+c.fillStyle=pal.mu;const short=url.replace(/^https?:\/\//,'');let us=story?30:25;for(const z of story?[30,26,23,20]:[25,22,20]){us=z;c.font=`600 ${z}px ${MONO}`;if(c.measureText(short).width<=tw)break}c.font=`600 ${us}px ${MONO}`;wrapT(c,short,tw).slice(0,3).forEach(l=>{ty+=us*.4;c.fillText(l,tx,ty+us*.6);ty+=us*1.05});
+c.font=`600 ${story?24:20}px ${SANS}`;c.globalAlpha=.8;c.fillText('Candidatura online · Talentos',tx,qy+qw-6);c.globalAlpha=1;
+// topo: selo + empresa
+let y=P;c.font=`800 ${story?30:26}px ${SANS}`;const bt='ESTAMOS CONTRATANDO',pad=story?26:22,ph=story?58:50;if('letterSpacing' in c)c.letterSpacing='2px';
+const pw=c.measureText(bt).width+pad*2;c.fillStyle=pal.ac;rrect(c,P,y,pw,ph,ph/2);c.fill();c.fillStyle=pal.pt;c.fillText(bt,P+pad,y+ph/2+(story?10:9));if('letterSpacing' in c)c.letterSpacing='0px';
+y+=ph+(story?44:34);c.fillStyle=pal.mu;c.font=`700 ${story?40:32}px ${SANS}`;const cn=fitT(c,company,z=>`700 ${z}px ${SANS}`,[story?40:32,28],CW,1);c.font=`700 ${cn.s}px ${SANS}`;c.fillText(cn.lines[0]||'',P,y+cn.s*.8);y+=cn.s+(story?44:30);
+// título
+c.fillStyle=pal.fg;const hs=story?[112,100,90,80,70,62]:[84,76,68,60,54,48],hl=fitT(c,d.headline||job.title,z=>`700 ${z}px ${SERIF}`,hs,CW,story?5:3);c.font=`700 ${hl.s}px ${SERIF}`;
+hl.lines.forEach(l=>{y+=hl.s*1.05;c.fillText(l,P,y);y+=hl.s*.1});y+=story?34:22;
+// subtítulo
+if(d.tagline){const ts=story?40:31,tl=fitT(c,d.tagline,z=>`400 ${z}px ${SANS}`,[ts,ts-4],CW,story?3:2);c.fillStyle=pal.mu;c.font=`400 ${tl.s}px ${SANS}`;tl.lines.forEach(l=>{y+=tl.s*1.35;c.fillText(l,P,y)});y+=story?30:20}
+// etiquetas
+const tg=[place(job)!=='—'?place(job):'',job.mode,job.area].filter(Boolean);c.font=`700 ${story?30:26}px ${SANS}`;let cx=P;const ch=story?58:48;y+=story?10:4;
+for(const t of tg){const w=c.measureText(t).width+(story?44:36);if(cx+w>W-P&&cx>P){cx=P;y+=ch+12}c.fillStyle='rgba(255,255,255,.16)';if(d.mood==='claro')c.fillStyle='rgba(79,70,229,.14)';rrect(c,cx,y,w,ch,ch/2);c.fill();c.fillStyle=pal.fg;c.fillText(t,cx+(story?22:18),y+ch/2+(story?10:9));cx+=w+12}
+y+=ch+(story?48:34);
+// destaques (somente o que couber)
+const bs=story?38:30,bl=bs*1.3;c.font=`500 ${bs}px ${SANS}`;
+for(const b of (d.bullets||[]).filter(Boolean).slice(0,4)){const ls=wrapT(c,b,CW-48).slice(0,2);if(y+ls.length*bl>yMax)break;
+c.fillStyle=pal.ac;c.beginPath();c.arc(P+10,y+bl*.5-4,9,0,7);c.fill();c.fillStyle=pal.fg;ls.forEach((l,i)=>c.fillText(l,P+40,y+bs*.95+i*bl));y+=ls.length*bl+(story?20:12)}}
+/* ---------- painel "imagem de divulgação" ---------- */
+function flDef(j){const co=S.company.name,b=[],pl=place(j)!=='—'?place(j):'';
+if(j.skills.length)b.push('Habilidades: '+j.skills.slice(0,4).join(', '));if(j.minYears>0)b.push('Experiência mínima: '+j.minYears+(j.minYears>1?' anos':' ano'));if(j.minEdu)b.push('Escolaridade mínima: '+j.minEdu);b.push('Candidatura 100% online');
+return{headline:('Estamos contratando: '+j.title).slice(0,70),tagline:`${co} está com vaga aberta${pl&&j.mode!=='Remoto'?' em '+pl:''}.`,bullets:b.slice(0,4),cta:'Escaneie o QR code e candidate-se',mood:'azul'}}
+function flStart(j){FL={job:j,copy:flDef(j),fmt:'feed',note:'',busy:false,qr:QR.make(flUrl(j)),ai:false}}
+async function openFl(id){const j=jobs.find(x=>x.id===id);if(!j)return;flStart(j);tab='nova';J=null;render();scrollTo(0,0);flAI()}
+function flDraw(){cancelAnimationFrame(flRaf);flRaf=requestAnimationFrame(()=>{const cv=$('#flc');if(!cv||!FL)return;try{drawFlyer(cv,FL.copy,FL.job,FL.fmt,FL.qr,flUrl(FL.job),S.company.name)}catch(e){console.error(e)}})}
+function flSet(k,v){if(!FL)return;FL.copy[k]=k==='bullets'?v.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,4):v;flDraw()}
+async function flAI(){if(!FL||FL.busy)return;const f=FL;f.busy=true;f.note='Gerando o texto com IA…';flNote();
+try{const d=await api('POST','/jobs/'+f.job.id+'/flyer-copy',{});if(FL!==f)return;
+if(d.ai){f.copy={headline:d.headline,tagline:d.tagline,bullets:d.bullets,cta:d.cta||f.copy.cta,mood:d.mood};f.ai=true;f.note='Texto gerado por IA. Revise antes de divulgar; você pode editar qualquer campo.'}
+else f.note=d.reason==='off'?'A IA ainda não está ativada neste servidor (falta a chave ANTHROPIC_API_KEY). Usei um texto padrão; edite os campos como quiser.':'A IA não respondeu agora. Mantive o texto padrão; tente de novo em instantes.'}
+catch(e){f.note=e.message}
+f.busy=false;if(FL===f&&tab==='nova'){render()}}
+function flNote(){const e=$('#fl-note');if(e)e.textContent=FL.note;const b=$('#fl-ai');if(b)b.disabled=FL.busy}
+const flSlug=t=>t.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)||'vaga';
+function flBlob(cb){const cv=$('#flc');if(cv)cv.toBlob(cb,'image/png')}
+function flDl(){flBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='vaga-'+flSlug(FL.job.title)+(FL.fmt==='story'?'-story':'')+'.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4e3)})}
+const flCanShare=()=>{try{return !!(navigator.canShare&&navigator.canShare({files:[new File([''],'a.png',{type:'image/png'})]}))}catch{return false}};
+function flShare(){flBlob(async b=>{const f=new File([b],'vaga-'+flSlug(FL.job.title)+'.png',{type:'image/png'});try{await navigator.share({files:[f],title:FL.job.title,text:`Vaga: ${FL.job.title} — ${S.company.name}\nCandidate-se: ${flUrl(FL.job)}`})}catch(e){if(e&&e.name!=='AbortError')toast('Não foi possível compartilhar. Use "Baixar imagem".')}})}
+async function flCopy(){const u=flUrl(FL.job);try{await navigator.clipboard.writeText(u);toast('Link copiado')}catch{prompt('Copie o link:',u)}}
+function flWa(){window.open('https://wa.me/?text='+encodeURIComponent(`Vaga aberta: ${FL.job.title} — ${S.company.name}\nCandidate-se: ${flUrl(FL.job)}`),'_blank','noopener')}
+function flNew(){FL=null;J=newJ();render();scrollTo(0,0)}
+function vFlyer(){const j=FL.job,d=FL.copy,url=flUrl(j);
+return`<div class="card"><h3 style="margin:0">✅ Vaga publicada: ${esc(j.title)}</h3><p class="mu" style="margin:6px 0 0">Link dos candidatos: <b id="fl-url">${esc(url)}</b></p></div>
+<div class="card"><h3>Imagem de divulgação</h3><p class="mu" id="fl-note" aria-live="polite">${esc(FL.note)}</p>
+<div class="fl"><div><canvas id="flc" role="img" aria-label="Prévia da imagem de divulgação da vaga, com link e QR code"></canvas></div>
+<div class="flf"><label>Título da imagem<input maxlength="70" value="${esc(d.headline)}" oninput="flSet('headline',this.value)"></label>
+<label>Subtítulo<textarea rows="2" maxlength="130" oninput="flSet('tagline',this.value)">${esc(d.tagline)}</textarea></label>
+<label>Destaques (um por linha, até 4)<textarea rows="4" oninput="flSet('bullets',this.value)">${esc((d.bullets||[]).join('\n'))}</textarea></label>
+<label>Chamada ao lado do QR code<input maxlength="50" value="${esc(d.cta)}" oninput="flSet('cta',this.value)"></label>
+<div class="g"><label>Formato<select onchange="FL.fmt=this.value;flDraw()"><option value="feed"${FL.fmt==='feed'?' selected':''}>Quadrado (feed) 1080×1080</option><option value="story"${FL.fmt==='story'?' selected':''}>Vertical (story/status) 1080×1920</option></select></label>
+<label>Cores<select onchange="FL.copy.mood=this.value;flDraw()">${Object.entries(PAL).map(([k,v])=>`<option value="${k}"${d.mood===k?' selected':''}>${v.n}</option>`).join('')}</select></label></div>
+<div><button id="fl-ai" onclick="flAI()"${FL.busy?' disabled':''}>✨ Gerar texto com IA</button></div>
+<div class="fb"><button class="pri" onclick="flDl()">Baixar imagem (PNG)</button>${flCanShare()?' <button onclick="flShare()">Compartilhar</button>':''} <button onclick="flCopy()">Copiar link</button> <button onclick="flWa()">Enviar link no WhatsApp</button></div></div></div></div>
+<div class="fb"><button onclick="flNew()">Publicar outra vaga</button> <button onclick="goTab('vagas')">Ver minhas vagas</button></div>`}
+/* ---------- link direto para a vaga (QR code) ---------- */
+let DL=null,HL='';
+(()=>{const m=location.pathname.match(/^\/v\/([0-9a-fA-F]{10})\/?$/),q=new URLSearchParams(location.search).get('vaga');
+DL=m?{key:m[1].toLowerCase()}:q&&/^[0-9a-fA-F-]{36}$/.test(q)?{key:q.toLowerCase()}:null})();
+function dlFocus(){if(!DL||!S)return;const d=DL;DL=null;history.replaceState(null,'','/');if(S.role!=='cand')return;
+const j=d.job&&jobs.find(x=>x.id===d.job.id);if(!j){toast('Esta vaga não está mais aberta.');return}
+F={...defF};HL=j.id;render();const el=document.getElementById('job-'+j.id);if(el)el.scrollIntoView({block:'center'});toast('Vaga do link: '+j.title)}
 async function init(){for(const k in SUG)$('#'+k).innerHTML=SUG[k].map(x=>`<option value="${x}">`).join('');
 if(location.hash.startsWith('#reset=')){rtok=location.hash.slice(7);mode='reset';history.replaceState(null,'',location.pathname)}
-if(!rtok){try{S=await api('GET','/me');await refresh()}catch(e){S=null}}go()}
-function go(){if(S){tab='vagas';if(S.role==='cand')P=norm(clone(S.p));sel=null;applying=null}render()}
+if(!rtok){try{S=await api('GET','/me');await refresh()}catch(e){S=null}}
+if(DL){try{DL.job=await api('GET','/public/job/'+DL.key)}catch(e){DL.job=null}}go()}
+function go(){if(S){tab='vagas';if(S.role==='cand')P=norm(clone(S.p));sel=null;applying=null}render();dlFocus()}
 function render(){document.body.classList.toggle('auth',!S);
 $('#hd').innerHTML=S?hdHtml():'';
 $('#app').innerHTML=!S?vAuth():S.role==='cand'?vCand():vRec();
-fillCities(S?.role==='cand'&&tab==='perfil'?P.uf:tab==='nova'&&J?J.uf:'')}
+fillCities(S?.role==='cand'&&tab==='perfil'?P.uf:tab==='nova'&&J?J.uf:'');if(FL&&tab==='nova')flDraw()}
 async function out(){try{await api('POST','/logout')}catch(e){}resetAll();render()}
 const er=m=>{const e=$('#er');e.className='err';e.textContent=m};
 function setR(r){const k=['nm','em','pw'],v=k.map(i=>$('#'+i)?.value||'');role=r;note='';render();k.forEach((i,n)=>{const e=$('#'+i);if(e)e.value=v[n]})}
@@ -207,7 +350,8 @@ const pw=l=>`<label>${l}<input id="pw" type="password" maxlength="128" autocompl
 const T={login:'Entrar',reg:'Criar conta',forgot:'Recuperar senha',reset:'Nova senha'}[mode],B={login:'Entrar',reg:'Cadastrar',forgot:'Enviar link',reset:'Salvar nova senha'}[mode];
 const f=pend?'<label>Código de 6 dígitos do app autenticador (ou código de recuperação)<input id="c2" inputmode="numeric" autocomplete="one-time-code" maxlength="20"></label><br>':mode==='forgot'?em:mode==='reset'?pw('Nova senha (10+ caracteres, com letras e números)'):
 (r?`<div class="seg"><button class="${role==='cand'?'on':''}" onclick="setR('cand')">Sou candidato</button><button class="${role==='rec'?'on':''}" onclick="setR('rec')">Sou recrutador</button></div><label>Nome<input id="nm" maxlength="80"></label><br>`:'')+em+pw('Senha'+(r?' (10+ caracteres, com letras e números)':''))+(r&&role==='rec'?'<label>Nome da empresa<input id="co" maxlength="80"></label><br><label>Código de convite da plataforma<input id="cd" autocomplete="off"></label><br>':'');
-const card=`<div class="card authcard"><h2>${pend?'Verificação em duas etapas':T}</h2>${f}<div class="${note?'mu':'err'}" id="er">${esc(note)}</div>
+const dl=DL?(DL.job?`<div class="tip" role="status"><b>${esc(DL.job.title)}</b> · ${esc(DL.job.company)}${DL.job.place?' · 📍 '+esc(DL.job.place):''}<br>Entre ou crie sua conta de candidato para se candidatar a esta vaga.</div>`:`<div class="tip" role="status">Esta vaga não está mais disponível. Depois de entrar, você vê as outras vagas abertas.</div>`):'';
+const card=`<div class="card authcard">${dl}<h2>${pend?'Verificação em duas etapas':T}</h2>${f}<div class="${note?'mu':'err'}" id="er">${esc(note)}</div>
 <button class="pri" style="width:100%" onclick="auth()">${pend?'Confirmar':B}</button>
 <p class="mu" style="text-align:center">${mode==='login'&&!pend?`<a href="#" onclick="go2('reg');return false">Criar conta</a> · <a href="#" onclick="go2('forgot');return false">Esqueci minha senha</a>`:`<a href="#" onclick="go2('login');return false">Voltar ao login</a>`}</p>
 ${mode==='login'&&!pend?`<p class="mu" style="text-align:center;margin-bottom:0">Vai contratar? <a href="#" onclick="startReg('rec');return false">Cadastre sua empresa</a></p>`:''}</div>`;
@@ -276,7 +420,7 @@ let l=jobs.filter(j=>(!F.uf||j.uf===F.uf)&&(!F.mode||j.mode===F.mode)&&(!F.area|
 l.sort(F.sort==='new'?(a,b)=>(b.j.created||0)-(a.j.created||0):(a,b)=>b.m-a.m);
 const have=p.skills.map(s=>s.toLowerCase());
 return`<p class="mu" aria-live="polite">${l.length} de ${jobs.length} vaga(s)</p>`+(l.map(({j,m})=>{const mine=apps.find(a=>a.jobId===j.id);
-return`<div class="card"><div class="row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${esc(j.company)} · ${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · mín. ${j.minYears} ano(s) · ${esc(j.minEdu)}</span></div><div class="pct">${m}%<div class="mu" style="font-weight:400">compatível</div></div></div>
+return`<div class="card${j.id===HL?' hl':''}" id="job-${j.id}"><div class="row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${esc(j.company)} · ${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · mín. ${j.minYears} ano(s) · ${esc(j.minEdu)}</span></div><div class="pct">${m}%<div class="mu" style="font-weight:400">compatível</div></div></div>
 <p>${esc(j.desc)}</p><div class="chips">${j.skills.map(s=>`<span class="chip ${have.includes(s.toLowerCase())?'ok':''}">${esc(s)}</span>`).join('')}</div>
 ${mine?`<span class="mu">✓ Candidatura enviada. Etapa atual: <b>${esc(mine.status)}</b></span>`:applying===j.id?`<div style="margin-top:10px"><h3>Formulário da vaga</h3>${j.qs.map(qf).join('<br>')}<br><button class="pri" onclick="apply('${j.id}')">Enviar candidatura</button> <button onclick="applying=null;updJobs()">Cancelar</button></div>`:`<button class="pri" onclick="applying='${j.id}';updJobs()">Candidatar-se</button>`}</div>`}).join('')||'<div class="card mu">Nenhuma vaga com esses filtros. Tente remover algum deles.</div>')}
 const updJobs=()=>{const el=$('#jl');if(el)el.innerHTML=jobList()};
@@ -333,7 +477,7 @@ async function rmCV(){if(!confirm('Remover o seu currículo do sistema?'))return
 /* ---------- recrutador ---------- */
 const can=k=>({jobs:['admin','rh'],move:['admin','rh','recrutador'],team:['admin'],integ:['admin']}[k]||[]).includes(S.crole);
 function vRec(){const hd=tab==='vagas'?'':pgHd(TITLES[tab]||'');
-return hd+(S.req2&&!S.t2?`<div class="card" style="border-color:var(--no)">🔒 Ative a verificação em duas etapas para acessar os candidatos. <a href="#" onclick="goTab('seg');return false">Abrir Segurança</a></div>`:'')+(tab==='seg'?vSeg():tab==='nova'?vNova():tab==='equipe'?vEquipe():tab==='msgs'?vMsgs():tab==='integ'?vInteg():sel?vRank():vLista())}
+return hd+(S.req2&&!S.t2?`<div class="card" style="border-color:var(--no)">🔒 Ative a verificação em duas etapas para acessar os candidatos. <a href="#" onclick="goTab('seg');return false">Abrir Segurança</a></div>`:'')+(tab==='seg'?vSeg():tab==='nova'?(FL?vFlyer():vNova()):tab==='equipe'?vEquipe():tab==='msgs'?vMsgs():tab==='integ'?vInteg():sel?vRank():vLista())}
 /* ---------- equipe (somente administrador) ---------- */
 const CR={admin:'Administrador',rh:'RH',recrutador:'Recrutador',gestor:'Gestor (somente leitura)'};
 const crOpts=v=>Object.entries(CR).map(([k,l])=>`<option value="${k}"${v===k?' selected':''}>${l}</option>`).join('');
@@ -349,14 +493,15 @@ ${team.map(u=>`<div class="row" style="padding:10px 0;border-top:1px solid var(-
 async function invite(){try{await api('POST','/team',{name:$('#tn').value,email:$('#te').value,crole:$('#tr').value});S=await api('GET','/me');await loadTeam();const e=$('#er');if(e){e.className='mu';e.textContent='Convite enviado.'}}catch(e){er(e.message)}}
 async function setRole(id,r){try{await api('PATCH','/team/'+id,{crole:r});if(id===S.id)S=await api('GET','/me');await loadTeam()}catch(e){alert(e.message);loadTeam()}}
 async function delMember(id){const u=team.find(x=>x.id===id);if(!u||!confirm('Remover '+u.name+' da equipe? O acesso será encerrado imediatamente.'))return;try{await api('DELETE','/team/'+id);S=await api('GET','/me');await loadTeam()}catch(e){alert(e.message)}}
-function vLista(){const c=S.company;return`<div class="pg"><h1 class="ph" tabindex="-1">Vagas e ranking</h1><span class="mu">Plano ${esc(c.limits.name)} · ${c.jobsOpen}/${c.limits.jobs} vagas abertas</span></div>`+(jobs.map(j=>`<div class="card row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${j.status==='open'?'':'🔒 Encerrada · '}${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · ${apps.filter(a=>a.jobId===j.id).length} candidatura(s)</span></div><div><button class="pri" onclick="openRank('${j.id}')">Ver melhores candidatos</button> ${can('jobs')?`<button onclick="toggleJ('${j.id}','${j.status==='open'?'closed':'open'}')">${j.status==='open'?'Encerrar':'Reabrir'}</button>`:''}</div></div>`).join('')||'<div class="card mu">Crie sua primeira vaga.</div>')}
+function vLista(){const c=S.company;return`<div class="pg"><h1 class="ph" tabindex="-1">Vagas e ranking</h1><span class="mu">Plano ${esc(c.limits.name)} · ${c.jobsOpen}/${c.limits.jobs} vagas abertas</span></div>`+(jobs.map(j=>`<div class="card row"><div><h3 style="margin:0">${esc(j.title)}</h3><span class="mu">${j.status==='open'?'':'🔒 Encerrada · '}${esc(j.area)} · 📍 ${esc(place(j))} · ${j.mode} · ${apps.filter(a=>a.jobId===j.id).length} candidatura(s)</span></div><div><button class="pri" onclick="openRank('${j.id}')">Ver melhores candidatos</button> ${can('jobs')&&j.status==='open'?`<button onclick="openFl('${j.id}')">Imagem de divulgação</button> `:''}${can('jobs')?`<button onclick="toggleJ('${j.id}','${j.status==='open'?'closed':'open'}')">${j.status==='open'?'Encerrar':'Reabrir'}</button>`:''}</div></div>`).join('')||'<div class="card mu">Crie sua primeira vaga.</div>')}
 function vNova(){return`<div class="card"><h3>Dados da vaga</h3><div class="g"><label>Título<input list="dl-rl" value="${esc(J.title)}" onchange="J.title=this.value"></label><label>Área<input list="dl-ar" value="${esc(J.area)}" onchange="J.area=this.value"></label>${locF('J')}<label>Modalidade<select onchange="J.mode=this.value">${MD.map(x=>`<option${J.mode===x?' selected':''}>${x}</option>`).join('')}</select></label><label>Anos mínimos de experiência<input type="number" min="0" value="${J.minYears}" onchange="J.minYears=+this.value"></label><label>Escolaridade mínima<select onchange="J.minEdu=this.value">${Object.keys(EDU).map(x=>`<option${J.minEdu===x?' selected':''}>${x}</option>`).join('')}</select></label></div>
 <label>Descrição<textarea rows="3" onchange="J.desc=this.value">${esc(J.desc)}</textarea></label></div>
 <div class="card"><h3>Habilidades exigidas</h3>${chips('J','skills')}</div>
 <div class="card"><h3>Perguntas do formulário</h3>${J.qs.map((x,i)=>`<div class="g" style="align-items:end"><label>Pergunta<input value="${esc(x.label)}" onchange="J.qs[${i}].label=this.value"></label><label>Tipo<select onchange="J.qs[${i}].type=this.value;render()">${Object.entries(QT).map(([k,v])=>`<option value="${k}"${x.type===k?' selected':''}>${v}</option>`).join('')}</select></label>${x.type==='choice'?`<label>Opções (separe por vírgula)<input value="${esc((x.opts||[]).join(','))}" onchange="J.qs[${i}].opts=this.value.split(',').map(s=>s.trim()).filter(Boolean)"></label>`:''}<button class="sm" onclick="J.qs.splice(${i},1);render()">Remover</button></div>`).join('')}<button class="sm" onclick="J.qs.push({label:'',type:'text',opts:['Opção 1','Opção 2']});render()">+ Pergunta</button></div>
-<button class="pri" onclick="pub()">Publicar vaga</button>`}
+<button class="pri" onclick="pub()">Publicar vaga</button>
+<p class="mu">Depois de publicar, o sistema monta a imagem de divulgação da vaga (texto escrito por IA, link e QR code) para você baixar e compartilhar.</p>`}
 async function toggleJ(id,st){try{await api('PATCH','/jobs/'+id,{status:st});jobs=await api('GET','/jobs');S=await api('GET','/me');render()}catch(e){alert(e.message)}}
-async function pub(){J.qs=J.qs.filter(q=>q.label.trim());try{await api('POST','/jobs',J);jobs=await api('GET','/jobs');S=await api('GET','/me');J=null;tab='vagas';render()}catch(e){alert(e.message)}}
+async function pub(){J.qs=J.qs.filter(q=>q.label.trim());try{const nj=await api('POST','/jobs',J);jobs=await api('GET','/jobs');S=await api('GET','/me');J=null;flStart(jobs.find(x=>x.id===nj.id)||nj);tab='nova';render();scrollTo(0,0);toast('Vaga publicada');flAI()}catch(e){alert(e.message)}}
 function openRank(id){sel=id;flt='all';stF='all';mv=null;render();ensureMsgs();syncRec()}
 async function ensureMsgs(){if(MG)return;try{MG=await api('GET','/messages')}catch(e){MGerr=e.message}}
 function vRank(){const j=jobs.find(x=>x.id===sel);
