@@ -185,7 +185,7 @@ const STAGES=ST.filter(x=>x!=='Recebida'),CHS=['email','whatsapp','both'];
 const SIGN='\n\nAtenciosamente,\n{recrutador} — {empresa}';
 const MSG0={
 Triagem:{on:false,ch:'email',subj:'Sua candidatura está em análise — {vaga}',body:'Olá, {nome}!\n\nSua candidatura para a vaga {vaga} na {empresa} avançou para a etapa de triagem. Assim que houver novidades, avisaremos você.'+SIGN},
-Entrevista:{on:true,ch:'email',subj:'Convite para entrevista — {vaga}',body:'Olá, {nome}!\n\nVocê foi selecionado(a) para a entrevista da vaga {vaga} na {empresa}.\n\nData: {data}\nHorário: {hora}\nLocal ou link: {local}\n\nPor favor, responda confirmando sua presença.'+SIGN},
+Entrevista:{on:true,ch:'both',subj:'Convite para entrevista — {vaga}',body:'Olá, {nome}!\n\nVocê foi selecionado(a) para a entrevista da vaga {vaga} na {empresa}.\n\nData: {data}\nHorário: {hora}\nLocal ou link: {local}\n\nPor favor, responda confirmando sua presença.'+SIGN},
 Proposta:{on:false,ch:'email',subj:'Novidade sobre a vaga {vaga}',body:'Olá, {nome}!\n\nVocê avançou para a etapa de proposta da vaga {vaga} na {empresa}. Entraremos em contato com os detalhes.'+SIGN},
 Aprovado:{on:false,ch:'email',subj:'Parabéns! Você foi aprovado(a) — {vaga}',body:'Olá, {nome}!\n\nParabéns! Você foi aprovado(a) no processo seletivo da vaga {vaga} na {empresa}. Em breve entraremos em contato com os próximos passos.'+SIGN},
 Recusado:{on:false,ch:'email',subj:'Atualização sobre sua candidatura — {vaga}',body:'Olá, {nome}!\n\nAgradecemos seu interesse na vaga {vaga} na {empresa}. Neste momento seguiremos com outros candidatos, mas manteremos seu perfil em nossa base para futuras oportunidades.'+SIGN}};
@@ -208,6 +208,7 @@ if(useT){body=fill(T.body,v);subj=fill(T.subj,v);
  if(T.ch!=='email')wa=waLink(cand.p?.phone,body)}
 if(!silent&&mailSt==='none'&&!(useT&&T.ch==='whatsapp')&&cand.p?.notifyEmail!==false)
  mailSt=await trySend('b:'+a.status,`Atualização da sua candidatura — ${jb.title}`,`Olá, ${v.nome}!\n\nSua candidatura para a vaga ${jb.title} (${co.name}) agora está na etapa: ${a.status}.\n\nAcompanhe em ${BASE}`);
+if(!silent&&!wa)wa=waLink(cand.p?.phone,body||`Olá, ${v.nome}! Sua candidatura para a vaga ${jb.title} (${co.name}) agora está na etapa: ${a.status}. Acompanhe em ${BASE}`);
 notify(cand,`${jb.title} — ${a.status}`,body||`Sua candidatura na ${co.name} avançou para a etapa: ${a.status}.`,a.id);
 return{mail:mailSt,wa}}
 /* ---------- vagas de outras plataformas (somente APIs públicas) ---------- */
