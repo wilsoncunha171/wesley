@@ -7,7 +7,7 @@ const MAIL_KEY=process.env.RESEND_API_KEY||'',FROM=process.env.MAIL_FROM||'',BAS
 const AI_KEY=process.env.ANTHROPIC_API_KEY||'',AI_MODEL=process.env.AI_MODEL||'claude-haiku-4-5-20251001',MOODS=['azul','laranja','verde','escuro','claro'];
 const PLATFORM_TOKEN=process.env.PLATFORM_TOKEN||'',LEADS_EMAIL=process.env.LEADS_EMAIL||'';
 const PLANS={fundador:{name:'Cliente Fundador',price:199,jobs:15,users:8,pool:true,promo:'10 primeiros clientes'},essencial:{name:'Essencial',price:199,jobs:3,users:2,pool:false},profissional:{name:'Profissional',price:399,jobs:15,users:8,pool:true},empresarial:{name:'Empresarial',price:799,jobs:60,users:30,pool:true}};
-const CROLES=['admin','rh','recrutador','gestor'],CAN={jobs:['admin','rh'],move:['admin','rh','recrutador'],team:['admin'],integ:['admin']};
+const CROLES=['admin','rh','recrutador','gestor','estoque','vendas'],CAN={jobs:['admin','rh'],move:['admin','rh','recrutador'],team:['admin'],integ:['admin'],stock:['admin','estoque'],storeR:['admin','gestor','estoque','vendas'],storeAdmin:['admin'],cust:['admin','vendas'],custR:['admin','gestor','vendas'],custAdmin:['admin'],pdv:['admin','vendas'],pdvR:['admin','gestor','vendas'],pdvAdmin:['admin']};
 const REQ2=process.env.REQUIRE_2FA==='1'||(PROD&&process.env.REQUIRE_2FA!=='0');
 let KEY=null;
 if(process.env.DATA_KEY){KEY=Buffer.from(process.env.DATA_KEY,'hex');if(KEY.length!==32){console.error('DATA_KEY deve ter 64 caracteres hex. Gere com: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');process.exit(1)}}
@@ -18,7 +18,7 @@ if(!KEY)console.warn('AVISO: sem DATA_KEY o banco NÃO é criptografado em disco
 const enc=s=>{const iv=crypto.randomBytes(12),c=crypto.createCipheriv('aes-256-gcm',KEY,iv),ct=Buffer.concat([c.update(s,'utf8'),c.final()]);return Buffer.concat([Buffer.from('TLN1'),iv,c.getAuthTag(),ct])};
 const decB=b=>{const d=crypto.createDecipheriv('aes-256-gcm',KEY,b.subarray(4,16));d.setAuthTag(b.subarray(16,32));return Buffer.concat([d.update(b.subarray(32)),d.final()])};
 const dec=b=>decB(b).toString('utf8');
-let DB={users:[],jobs:[],apps:[],sessions:{},companies:[],leads:[]};
+let DB={users:[],jobs:[],apps:[],sessions:{},companies:[],leads:[],items:[],stockMoves:[],customers:[],ledger:[],cashSessions:[],cashMoves:[],sales:[]};
 const CVDIR=path.join(path.dirname(FILE),'cv'),CVMAX=3*1024*1024,PGURL=process.env.DATABASE_URL||'';
 /* ---------- cliente mínimo de PostgreSQL (protocolo v3, sem dependências) ----------
    TLS, autenticação SCRAM-SHA-256 (Neon, Supabase, etc.), consultas parametrizadas e lotes atômicos. */
@@ -110,7 +110,7 @@ const rows=await pg.query('select coll,id,data from tln_docs order by seq',[]);
 if(!rows.length){const f=readFileDB();if(f){DB={...DB,...f};console.log('Importando o banco local para o PostgreSQL…');await flushPG();
 try{for(const n of fs.readdirSync(CVDIR))if(n.endsWith('.bin'))await pg.query('insert into tln_blobs(id,data) values($1,$2) on conflict(id) do nothing',[n.slice(0,-4),fs.readFileSync(path.join(CVDIR,n)).toString('base64')])}catch{}}
 console.log('Banco PostgreSQL pronto (vazio).');return}
-DB={users:[],jobs:[],apps:[],sessions:{},companies:[],leads:[]};
+DB={users:[],jobs:[],apps:[],sessions:{},companies:[],leads:[],items:[],stockMoves:[],customers:[],ledger:[],cashSessions:[],cashMoves:[],sales:[]};
 try{for(const[c,id,t]of rows){const o=JSON.parse(unpack(t));if(MAPS.has(c))(DB[c]=DB[c]||{})[id]=o;else(DB[c]=DB[c]||[]).push(o);if(!(KEY&&t.startsWith('p:')))snap.set(c+'\0'+id,JSON.stringify(o))}}
 catch(e){console.error('Falha ao ler os dados do PostgreSQL ('+e.message+'). Confira a DATA_KEY. Abortando para não sobrescrever dados.');process.exit(1)}
 console.log('Banco PostgreSQL carregado: '+rows.length+' registros.')}
@@ -193,6 +193,8 @@ const msgsOf=c=>Object.fromEntries(STAGES.map(x=>[x,{...MSG0[x],...(c.msgs?.[x]|
 const cleanMsgs=b=>Object.fromEntries(STAGES.map(x=>{const m=b?.[x]||{};return[x,{on:m.on===true,ch:pick(m.ch,CHS),subj:str(m.subj,120).replace(/\s+/g,' ')||MSG0[x].subj,body:str(m.body,1500)||MSG0[x].body}]}));
 const fill=(t,v)=>String(t).replace(/\{(\w+)\}/g,(m,k)=>k in v?v[k]:m);
 const dBR=d=>/^\d{4}-\d{2}-\d{2}$/.test(String(d||''))?d.split('-').reverse().join('/'):'';
+// Telefone brasileiro: DDD (11–99) + 8 ou 9 dígitos; aceita +55. Devolve "(91) 98888-7777" ou null.
+const brPhone=v=>{let d=String(v||'').replace(/\D/g,'');if((d.length===12||d.length===13)&&d.startsWith('55'))d=d.slice(2);if(d.length!==10&&d.length!==11)return null;if(+d.slice(0,2)<11)return null;if(d.length===11&&d[2]!=='9')return null;return d.length===11?d.replace(/(\d\d)(\d{5})(\d{4})/,'($1) $2-$3'):d.replace(/(\d\d)(\d{4})(\d{4})/,'($1) $2-$3')};
 const waLink=(phone,text)=>{let d=String(phone||'').replace(/\D/g,'');if(d.length<10||d.length>13)return null;if(d.length<=11)d='55'+d;return'https://wa.me/'+d+'?text='+encodeURIComponent(text)};
 function notify(u,title,body,appId){(u.nt=u.nt||[]).unshift({id:crypto.randomUUID(),t:Date.now(),title:str(title,150),body:str(body,1500),app:appId,r:false});u.nt.length=Math.min(u.nt.length,50)}
 // Chamado depois que a etapa da candidatura mudou. Sempre avisa dentro do sistema; e-mail/WhatsApp seguem o modelo da empresa.
@@ -253,14 +255,151 @@ const d=await r.json(),t=(d.content||[]).map(x=>x.text||'').join(''),mt=t.match(
 const o=JSON.parse(mt[0]),out={headline:str(o.headline,70),tagline:str(o.tagline,130),bullets:(Array.isArray(o.bullets)?o.bullets:[]).map(x=>str(x,70)).filter(Boolean).slice(0,4),cta:str(o.cta,50),mood:MOODS.includes(o.mood)?o.mood:'azul'};
 if(!out.headline)throw new Error('ai vazio');return out}
 /* ---------- rotas ---------- */
+/* ---------- ERP · loja: produtos e estoque ----------
+   Dinheiro em CENTAVOS inteiros; quantidades em MILÉSIMOS inteiros (1 un = 1000). Nunca usamos ponto flutuante para guardar valores. */
+const UNITS=['un','kg','g','l','ml','m','cx','pct'],MAXC=1e9,MAXQ=1e9;
+const permS=(me,k)=>{need(me,'rec');if(!CAN[k].includes(me.crole))throw E(403,'Seu papel na empresa não permite esta ação.')};
+const toQ=(v,unit,{zero=false}={})=>{const s=String(v??'').trim().replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');if(!/^\d+(\.\d{1,3})?$/.test(s))throw E(400,'Quantidade inválida.');
+const n=Math.round(parseFloat(s)*1000);if(!Number.isSafeInteger(n)||n>MAXQ||(!zero&&n<=0))throw E(400,'Quantidade inválida.');if(unit==='un'&&n%1000)throw E(400,'Esta unidade aceita apenas quantidades inteiras.');return n};
+const toC=(v,what)=>{if(!Number.isInteger(v)||v<0||v>MAXC)throw E(400,what+' inválido.');return v};
+const itOf=(me,id)=>{const it=(DB.items||[]).find(x=>x.id===id&&x.companyId===me.companyId);if(!it)throw E(404,'Produto não encontrado.');return it};
+const itPub=it=>({id:it.id,sku:it.sku,barcode:it.barcode||'',name:it.name,cat:it.cat||'',unit:it.unit,cost:it.cost,price:it.price,q:it.q,min:it.min,active:it.active!==false,t:it.t});
+const bigVal=(l,f)=>Number((l.reduce((s,x)=>s+BigInt(x.q)*BigInt(x[f]),0n)+500n)/1000n);
+function itemFields(b,it,co){const o={};
+if('name'in b){o.name=str(b.name,120);if(o.name.length<2)throw E(400,'Informe o nome do produto.')}
+if('unit'in b){if(!UNITS.includes(b.unit))throw E(400,'Unidade inválida.');o.unit=b.unit}
+if('cat'in b)o.cat=str(b.cat,60);
+if('barcode'in b){o.barcode=str(b.barcode,20).replace(/\D/g,'')}
+if('sku'in b)o.sku=str(b.sku,40).replace(/\s+/g,'');
+if('cost'in b)o.cost=toC(b.cost,'Custo');if('price'in b)o.price=toC(b.price,'Preço');
+const un=o.unit||it?.unit||'un';
+if('min'in b)o.min=toQ(b.min||'0',un,{zero:true});
+if('active'in b)o.active=b.active!==false;
+if(it&&o.unit==='un'&&it.q%1000)throw E(400,'Há estoque fracionado: ajuste o estoque antes de mudar para "un".');
+const others=(DB.items||[]).filter(x=>x.companyId===co.id&&x!==it);
+if(o.sku&&others.some(x=>x.sku.toLowerCase()===o.sku.toLowerCase()))throw E(400,'Já existe um produto com este código (SKU).');
+if(o.barcode&&others.some(x=>x.barcode&&x.barcode===o.barcode))throw E(400,'Já existe um produto com este código de barras.');
+return o}
+function mvAdd(me,it,type,dq,reason,cost){const m={id:crypto.randomUUID(),companyId:me.companyId,itemId:it.id,type,dq,q:it.q,cost,reason:str(reason,120),by:me.name,uid:me.id,t:Date.now()};(DB.stockMoves=DB.stockMoves||[]).push(m);return m}
+const brl=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const cpfOk=d=>{if(d.length!==11||/^(\d)\1+$/.test(d))return false;for(const n of[9,10]){let s=0;for(let i=0;i<n;i++)s+=+d[i]*(n+1-i);if((s*10%11)%10!==+d[n])return false}return true};
+const cnpjOk=d=>{if(d.length!==14||/^(\d)\1+$/.test(d))return false;for(const n of[12,13]){let s=0,w=n-7;for(let i=0;i<n;i++){s+=+d[i]*w--;if(w<2)w=9}const r=s%11<2?0:11-s%11;if(r!==+d[n])return false}return true};
+const cuPub=c=>({id:c.id,name:c.name,doc:c.doc||'',phone:c.phone||'',email:c.email||'',city:c.city||'',notes:c.notes||'',limit:c.limit,bal:c.bal,active:c.active!==false,t:c.t});
+function cuFields(b,cu,co){const o={};
+if('name'in b){o.name=str(b.name,100);if(o.name.length<2)throw E(400,'Informe o nome do cliente.')}
+if('doc'in b){const d=str(b.doc,20).replace(/\D/g,'');if(d&&!cpfOk(d)&&!cnpjOk(d))throw E(400,'CPF ou CNPJ inválido.');o.doc=d}
+if('phone'in b){const t=str(b.phone,25);if(t){o.phone=brPhone(t);if(!o.phone)throw E(400,'Telefone inválido. Use DDD + número, ex.: (91) 98888-7777.')}else o.phone=''}
+if('email'in b){const e=str(b.email,120).toLowerCase();if(e&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))throw E(400,'E-mail inválido.');o.email=e}
+if('city'in b)o.city=str(b.city,80);if('notes'in b)o.notes=str(b.notes,300);
+if('limit'in b)o.limit=toC(b.limit,'Limite');if('active'in b)o.active=b.active!==false;
+if(o.doc&&(DB.customers||[]).some(x=>x.companyId===co.id&&x!==cu&&x.doc===o.doc))throw E(400,'Já existe um cliente com este CPF/CNPJ.');
+return o}
+function ledAdd(me,cu,type,dc,method,note){const x={id:crypto.randomUUID(),companyId:me.companyId,customerId:cu.id,type,dc,bal:cu.bal,method,note:str(note,120),by:me.name,uid:me.id,t:Date.now()};(DB.ledger=DB.ledger||[]).push(x);return x}
+const mulC=(q,p)=>Number((BigInt(q)*BigInt(p)+500n)/1000n),PM=['cash','pix','card','fiado'];
+const sesOf=co=>(DB.cashSessions||[]).find(s=>s.companyId===co.id&&s.status==='open');
+function sesSum(s){const all=(DB.sales||[]).filter(x=>x.sessionId===s.id),ok=all.filter(x=>x.status==='done'),by={cash:0,pix:0,card:0,fiado:0};for(const x of ok)for(const p of x.pays)by[p.m]+=p.v;
+let sup=0,san=0;for(const x of(DB.cashMoves||[]))if(x.sessionId===s.id){if(x.type==='in')sup+=x.amount;else san+=x.amount}
+return{id:s.id,status:s.status,openedAt:s.t,by:s.byName,open:s.open,pay:by,sup,san,expected:s.open+by.cash+sup-san,n:ok.length,total:ok.reduce((a,x)=>a+x.total,0),voided:all.length-ok.length,closedAt:s.closedAt||null,closedBy:s.closedBy||'',counted:s.counted===undefined?null:s.counted,diff:s.diff===undefined?null:s.diff,note:s.note||''}}
+const salePub=x=>({id:x.id,code:x.code,items:x.rows.map(r=>({name:r.name,unit:r.unit,q:r.q,price:r.price,total:r.total})),sub:x.sub,discount:x.disc,total:x.total,pays:x.pays,recv:x.recv||0,change:x.change||0,customerId:x.customerId||'',customer:x.customerName||'',status:x.status,by:x.byName,t:x.t,voidReason:x.voidReason||''});
+function erp(m,p,b,c){const{me,ip,q}=c,k=m+' '+p;need(me,'rec');const co=coOf(me);if(!co)throw E(403,'Empresa não encontrada.');
+if(m!=='GET')limit('erp:'+me.id,600,36e5);
+if(k==='GET /api/erp/summary'){permS(me,'storeR');const l=(DB.items||[]).filter(x=>x.companyId===co.id&&x.active!==false);
+return{n:l.length,low:l.filter(x=>x.q<=x.min&&x.min>0).length,zero:l.filter(x=>x.q<=0).length,cost:bigVal(l,'cost'),sale:bigVal(l,'price')}}
+if(k==='GET /api/erp/items'){permS(me,'storeR');const l=(DB.items||[]).filter(x=>x.companyId===co.id).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+return{items:l.slice(0,3000).map(itPub),cats:[...new Set(l.map(x=>x.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'))}}
+if(k==='POST /api/erp/items'){permS(me,'stock');if((DB.items||[]).filter(x=>x.companyId===co.id).length>=5000)throw E(402,'Limite de produtos atingido.');
+const un=UNITS.includes(b.unit)?b.unit:'un',o=itemFields({name:'',unit:un,cost:0,price:0,min:'0',...b,sku:b.sku||''},null,co);
+if(!o.sku){const has=x=>(DB.items||[]).some(y=>y.companyId===co.id&&y.sku.toLowerCase()===x);let n;do{n=String(co.skuSeq=(co.skuSeq||0)+1).padStart(4,'0')}while(has(n));o.sku=n}
+if((DB.items||[]).some(x=>x.companyId===co.id&&x.sku.toLowerCase()===o.sku.toLowerCase()))throw E(400,'Já existe um produto com este código (SKU).');
+const it={id:crypto.randomUUID(),companyId:co.id,sku:o.sku,barcode:o.barcode||'',name:o.name,cat:o.cat||'',unit:o.unit,cost:o.cost,price:o.price,q:0,min:o.min||0,active:true,t:Date.now()};
+const q0=b.qty!==undefined&&String(b.qty).trim()!==''?toQ(b.qty,it.unit,{zero:true}):0;
+(DB.items=DB.items||[]).push(it);if(q0>0){it.q=q0;mvAdd(me,it,'in',q0,'Estoque inicial',it.cost)}
+save();log('item_add',ip,{uid:me.id,item:it.id});return itPub(it)}
+const im=p.match(/^\/api\/erp\/items\/([0-9a-f-]{36})(\/moves|\/move)?$/);
+if(im){const sub=im[2]||'';
+if(m==='GET'&&sub==='/moves'){permS(me,'storeR');const it=itOf(me,im[1]);return{item:itPub(it),moves:(DB.stockMoves||[]).filter(x=>x.itemId===it.id).sort((a,b)=>b.t-a.t).slice(0,100).map(x=>({id:x.id,type:x.type,dq:x.dq,q:x.q,cost:x.cost,reason:x.reason,by:x.by,t:x.t}))}}
+if(m==='PATCH'&&!sub){permS(me,'stock');const it=itOf(me,im[1]),o=itemFields(b,it,co);Object.assign(it,o);save();log('item_edit',ip,{uid:me.id,item:it.id});return itPub(it)}
+if(m==='DELETE'&&!sub){permS(me,'storeAdmin');const it=itOf(me,im[1]);DB.items=DB.items.filter(x=>x!==it);DB.stockMoves=(DB.stockMoves||[]).filter(x=>x.itemId!==it.id);save();log('item_del',ip,{uid:me.id,item:it.id});return{ok:true}}
+if(m==='POST'&&sub==='/move'){permS(me,'stock');const it=itOf(me,im[1]);if(it.active===false)throw E(400,'Produto desativado. Reative-o para movimentar.');
+const type=b.type;if(!['in','out','adjust'].includes(type))throw E(400,'Tipo de movimentação inválido.');
+if(type==='adjust'){const nq=toQ(b.qty,it.unit,{zero:true}),dq=nq-it.q;if(!dq)throw E(400,'A contagem é igual ao estoque atual.');it.q=nq;const mv=mvAdd(me,it,'adjust',dq,b.reason||'Inventário',it.cost);save();log('stock_adjust',ip,{uid:me.id,item:it.id});return{item:itPub(it),move:mv}}
+const n=toQ(b.qty,it.unit);
+if(type==='out'){if(n>it.q)throw E(400,'Estoque insuficiente. Disponível: '+(it.q/1000).toLocaleString('pt-BR',{maximumFractionDigits:3})+' '+it.unit+'.');it.q-=n;const mv=mvAdd(me,it,'out',-n,b.reason||'Saída',it.cost);save();log('stock_out',ip,{uid:me.id,item:it.id});return{item:itPub(it),move:mv}}
+const uc=b.cost===undefined||b.cost===null||b.cost===''?it.cost:toC(b.cost,'Custo');
+const tot=it.q+n;if(tot>MAXQ)throw E(400,'Quantidade total acima do limite.');
+// custo médio ponderado, em BigInt para não perder precisão
+it.cost=it.q>0?Number((BigInt(it.q)*BigInt(it.cost)+BigInt(n)*BigInt(uc)+BigInt(tot>>1))/BigInt(tot)):uc;it.q=tot;
+const mv=mvAdd(me,it,'in',n,b.reason||'Entrada',uc);save();log('stock_in',ip,{uid:me.id,item:it.id});return{item:itPub(it),move:mv}}}
+/* clientes e fiado (valores em centavos; bal = saldo devedor atual) */
+if(p==='/api/erp/customers'||/^\/api\/erp\/customers\//.test(p)){
+const PAY=['cash','pix','card','transfer'];
+if(k==='GET /api/erp/customers'){permS(me,'custR');const l=(DB.customers||[]).filter(x=>x.companyId===co.id);
+return{items:l.sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).slice(0,3000).map(cuPub),sum:{n:l.filter(x=>x.active!==false).length,owing:l.filter(x=>x.bal>0).length,total:l.reduce((s,x)=>s+x.bal,0)}}}
+if(k==='POST /api/erp/customers'){permS(me,'cust');if((DB.customers||[]).filter(x=>x.companyId===co.id).length>=5000)throw E(402,'Limite de clientes atingido.');
+const o=cuFields({name:'',...b},null,co);const cu={id:crypto.randomUUID(),companyId:co.id,name:o.name,doc:o.doc||'',phone:o.phone||'',email:o.email||'',city:o.city||'',notes:o.notes||'',limit:o.limit||0,bal:0,active:true,t:Date.now()};
+(DB.customers=DB.customers||[]).push(cu);save();log('cust_add',ip,{uid:me.id,cust:cu.id});return cuPub(cu)}
+const cm=p.match(/^\/api\/erp\/customers\/([0-9a-f-]{36})(\/ledger|\/charge|\/pay)?$/);
+if(cm){const sub=cm[2]||'',cu=(DB.customers||[]).find(x=>x.id===cm[1]&&x.companyId===co.id);if(!cu)throw E(404,'Cliente não encontrado.');
+if(m==='GET'&&sub==='/ledger'){permS(me,'custR');return{customer:cuPub(cu),moves:(DB.ledger||[]).filter(x=>x.customerId===cu.id).sort((a,b)=>b.t-a.t).slice(0,100).map(x=>({id:x.id,type:x.type,dc:x.dc,bal:x.bal,method:x.method||'',note:x.note,by:x.by,t:x.t}))}}
+if(m==='PATCH'&&!sub){permS(me,'cust');Object.assign(cu,cuFields(b,cu,co));save();log('cust_edit',ip,{uid:me.id,cust:cu.id});return cuPub(cu)}
+if(m==='DELETE'&&!sub){permS(me,'custAdmin');if(cu.bal>0)throw E(400,'Este cliente tem saldo devedor. Receba o pagamento antes de excluir (ou desative o cadastro).');DB.customers=DB.customers.filter(x=>x!==cu);DB.ledger=(DB.ledger||[]).filter(x=>x.customerId!==cu.id);save();log('cust_del',ip,{uid:me.id,cust:cu.id});return{ok:true}}
+if(m==='POST'&&sub==='/charge'){permS(me,'cust');if(cu.active===false)throw E(400,'Cliente desativado.');const n=toC(b.amount,'Valor');if(n<=0)throw E(400,'Valor inválido.');
+if(cu.limit<=0)throw E(400,'Este cliente não tem limite de fiado. Defina um limite em "Editar".');
+if(cu.bal+n>cu.limit)throw E(400,'Limite de fiado excedido. Disponível: '+brl(Math.max(0,cu.limit-cu.bal))+'.');
+cu.bal+=n;const mv=ledAdd(me,cu,'charge',n,'',b.note||'Compra no fiado');save();log('fiado_charge',ip,{uid:me.id,cust:cu.id,v:n});return{customer:cuPub(cu),move:mv}}
+if(m==='POST'&&sub==='/pay'){permS(me,'cust');const n=toC(b.amount,'Valor');if(n<=0)throw E(400,'Valor inválido.');if(cu.bal<=0)throw E(400,'Este cliente não tem saldo devedor.');
+if(n>cu.bal)throw E(400,'Valor maior que o saldo devedor ('+brl(cu.bal)+').');
+cu.bal-=n;const mv=ledAdd(me,cu,'payment',-n,PAY.includes(b.method)?b.method:'cash',b.note||'Pagamento');save();log('fiado_pay',ip,{uid:me.id,cust:cu.id,v:n});return{customer:cuPub(cu),move:mv}}}}
+/* PDV e caixa diário: valores em centavos; quantidades em milésimos; a venda é atômica (valida tudo antes de gravar) */
+if(p.startsWith('/api/erp/pdv/')){
+const fq=(q,u)=>(q/1000).toLocaleString('pt-BR',{maximumFractionDigits:3})+' '+u;
+if(k==='GET /api/erp/pdv/session'){permS(me,'pdvR');const s=sesOf(co);if(!s)return{session:null,sales:[],moves:[]};
+return{session:sesSum(s),sales:(DB.sales||[]).filter(x=>x.sessionId===s.id).sort((a,b)=>b.t-a.t).slice(0,100).map(salePub),moves:(DB.cashMoves||[]).filter(x=>x.sessionId===s.id).sort((a,b)=>b.t-a.t).map(x=>({id:x.id,type:x.type,amount:x.amount,note:x.note,by:x.by,t:x.t}))}}
+if(k==='GET /api/erp/pdv/sessions'){permS(me,'pdvR');return{sessions:(DB.cashSessions||[]).filter(s=>s.companyId===co.id&&s.status==='closed').sort((a,b)=>b.closedAt-a.closedAt).slice(0,30).map(sesSum)}}
+if(k==='POST /api/erp/pdv/open'){permS(me,'pdv');if(sesOf(co))throw E(400,'Já existe um caixa aberto.');const v=b.amount===undefined||b.amount===''?0:toC(b.amount,'Valor inicial');
+const s={id:crypto.randomUUID(),companyId:co.id,status:'open',open:v,byId:me.id,byName:me.name,t:Date.now()};(DB.cashSessions=DB.cashSessions||[]).push(s);save();log('cash_open',ip,{uid:me.id});return{session:sesSum(s)}}
+const s=sesOf(co);
+if(k==='POST /api/erp/pdv/move'){permS(me,'pdv');if(!s)throw E(400,'Abra o caixa primeiro.');if(!['in','out'].includes(b.type))throw E(400,'Tipo inválido.');const v=toC(b.amount,'Valor');if(v<=0)throw E(400,'Valor inválido.');
+if(b.type==='out'&&v>sesSum(s).expected)throw E(400,'A sangria é maior que o dinheiro esperado no caixa ('+brl(sesSum(s).expected)+').');
+(DB.cashMoves=DB.cashMoves||[]).push({id:crypto.randomUUID(),companyId:co.id,sessionId:s.id,type:b.type,amount:v,note:str(b.note,120),by:me.name,t:Date.now()});save();log('cash_move',ip,{uid:me.id,v});return{session:sesSum(s)}}
+if(k==='POST /api/erp/pdv/close'){permS(me,'pdv');if(!s)throw E(400,'Não há caixa aberto.');const v=toC(b.counted,'Valor contado'),sm=sesSum(s);
+Object.assign(s,{status:'closed',closedAt:Date.now(),closedBy:me.name,counted:v,diff:v-sm.expected,note:str(b.note,200)});save();log('cash_close',ip,{uid:me.id,diff:s.diff});return{session:sesSum(s)}}
+if(k==='POST /api/erp/pdv/sale'){permS(me,'pdv');if(!s)throw E(400,'Abra o caixa antes de vender.');
+const lines=Array.isArray(b.items)?b.items:[];if(!lines.length)throw E(400,'Adicione ao menos um produto à venda.');if(lines.length>200)throw E(400,'Itens demais em uma única venda.');
+const need={},rows=[];
+for(const l of lines){const it=itOf(me,String(l.itemId||''));if(it.active===false)throw E(400,'"'+it.name+'" está desativado.');const q=toQ(l.qty,it.unit);need[it.id]=(need[it.id]||0)+q;
+if(need[it.id]>it.q)throw E(400,'Estoque insuficiente de "'+it.name+'". Disponível: '+fq(it.q,it.unit)+'.');
+rows.push({itemId:it.id,name:it.name,sku:it.sku,unit:it.unit,q,price:it.price,cost:it.cost,total:mulC(q,it.price)})}
+const sub=rows.reduce((a,r)=>a+r.total,0),disc=b.discount===undefined||b.discount===''?0:toC(b.discount,'Desconto');if(disc>sub)throw E(400,'O desconto é maior que o total.');const total=sub-disc;if(total<=0)throw E(400,'O total da venda precisa ser maior que zero.');
+const pays=[],seen=new Set();let recv=0,change=0,cu=null;
+for(const x of(Array.isArray(b.payments)?b.payments:[])){if(!PM.includes(x.m))throw E(400,'Forma de pagamento inválida.');if(seen.has(x.m))throw E(400,'Forma de pagamento repetida.');seen.add(x.m);const v=toC(x.v,'Valor do pagamento');if(v<=0)throw E(400,'Valor do pagamento inválido.');pays.push({m:x.m,v});
+if(x.m==='cash'&&x.recv!==undefined&&x.recv!==''){recv=toC(x.recv,'Valor recebido');if(recv<v)throw E(400,'O valor recebido em dinheiro é menor que o valor a pagar.');change=recv-v}}
+const paid=pays.reduce((a,x)=>a+x.v,0);if(paid!==total)throw E(400,'A soma dos pagamentos ('+brl(paid)+') difere do total ('+brl(total)+').');
+const fi=pays.find(x=>x.m==='fiado');
+if(fi){cu=(DB.customers||[]).find(x=>x.id===String(b.customerId||'')&&x.companyId===co.id);if(!cu)throw E(400,'Escolha o cliente do fiado.');if(cu.active===false)throw E(400,'Cliente desativado.');if(cu.limit<=0)throw E(400,'Este cliente não tem limite de fiado.');if(cu.bal+fi.v>cu.limit)throw E(400,'Limite de fiado excedido. Disponível: '+brl(Math.max(0,cu.limit-cu.bal))+'.')}
+const code=co.saleSeq=(co.saleSeq||0)+1,sale={id:crypto.randomUUID(),companyId:co.id,code,sessionId:s.id,rows,sub,disc,total,pays,recv,change,customerId:cu?cu.id:'',customerName:cu?cu.name:'',status:'done',byId:me.id,byName:me.name,t:Date.now()};
+for(const r of rows){const it=DB.items.find(x=>x.id===r.itemId);it.q-=r.q;mvAdd(me,it,'out',-r.q,'Venda #'+code,r.cost)}
+if(cu){cu.bal+=fi.v;ledAdd(me,cu,'charge',fi.v,'','Venda #'+code).ref=sale.id}
+(DB.sales=DB.sales||[]).push(sale);save();log('sale',ip,{uid:me.id,code,v:total});return{sale:salePub(sale),session:sesSum(s)}}
+const vm=p.match(/^\/api\/erp\/pdv\/sales\/([0-9a-f-]{36})\/void$/);
+if(vm&&m==='POST'){permS(me,'pdvAdmin');const sale=(DB.sales||[]).find(x=>x.id===vm[1]&&x.companyId===co.id);if(!sale)throw E(404,'Venda não encontrada.');if(sale.status!=='done')throw E(400,'Esta venda já foi cancelada.');
+if(!s||s.id!==sale.sessionId)throw E(400,'O caixa desta venda já foi fechado. O cancelamento só é possível com o caixa aberto.');const reason=str(b.reason,120);if(reason.length<3)throw E(400,'Informe o motivo do cancelamento.');
+const fi=sale.pays.find(x=>x.m==='fiado'),cu=fi&&(DB.customers||[]).find(x=>x.id===sale.customerId);
+if(fi){if(!cu)throw E(400,'O cliente do fiado não existe mais; não é possível cancelar.');if(cu.bal<fi.v)throw E(400,'O cliente já pagou parte deste fiado, então o cancelamento não pode ser feito automaticamente.')}
+for(const r of sale.rows){const it=(DB.items||[]).find(x=>x.id===r.itemId);if(it){it.q+=r.q;mvAdd(me,it,'in',r.q,'Cancelamento da venda #'+sale.code,r.cost)}}
+if(fi){cu.bal-=fi.v;ledAdd(me,cu,'payment',-fi.v,'','Cancelamento da venda #'+sale.code)}
+Object.assign(sale,{status:'void',voidReason:reason,voidBy:me.name,voidAt:Date.now()});save();log('sale_void',ip,{uid:me.id,code:sale.code});return{sale:salePub(sale),session:sesSum(s)}}}
+throw E(404,'Rota não encontrada.')}
 async function route(m,p,b,c){const{me,ip,res,q}=c,k=m+' '+p;
+if(p.startsWith('/api/erp/'))return erp(m,p,b,c);
 if(k==='POST /api/register'){limit('a:'+ip,10,9e5);const role=b.role==='rec'?'rec':'cand',email=str(b.email,120).toLowerCase(),name=str(b.name,80),pw=String(b.password||'');
 if(!name||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw E(400,'Informe nome e e-mail válido.');
 if(!strong(pw,email))throw E(400,'Senha: 10+ caracteres, com letras e números, e não pode ser óbvia.');
 if(role==='rec'&&(!CODE||!safeEq(b.code||'',CODE))){log('recruiter_code_fail',ip);throw E(403,'Código de convite inválido.')}
+const tel=role==='cand'?brPhone(b.phone):'';if(role==='cand'&&!tel)throw E(400,'Informe um telefone válido com DDD, por exemplo (91) 98888-7777.');
 const ph=await hs(pw);
 if(DB.users.some(u=>u.email===email))throw E(400,'Não foi possível concluir o cadastro. Se você já tem conta, faça login.');
-const u={id:crypto.randomUUID(),role,name,email,ph};if(role==='cand')u.p=cleanP({});else{const cn=str(b.company,80);if(cn.length<2)throw E(400,'Informe o nome da empresa.');
+const u={id:crypto.randomUUID(),role,name,email,ph};if(role==='cand')u.p=cleanP({phone:tel});else{const cn=str(b.company,80);if(cn.length<2)throw E(400,'Informe o nome da empresa.');
 const c={id:crypto.randomUUID(),name:cn,plan:'essencial',created:Date.now()};DB.companies.push(c);u.companyId=c.id;u.crole='admin'}
 DB.users.push(u);log('register',ip,{uid:u.id,role});return session(u,res)}
 if(k==='POST /api/login'){limit('a:'+ip,10,9e5);const email=str(b.email,120).toLowerCase();
