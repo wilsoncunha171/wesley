@@ -52,6 +52,12 @@ button.sm{padding:5px 10px;font-size:13px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
 .chip{background:var(--in);border:1px solid var(--bd);border-radius:99px;padding:2px 10px;font-size:13px}
 .chip b{margin-left:6px;cursor:pointer;color:var(--mu)}
+.sprod.off,.scli.off{opacity:.65}
+.pdv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}@media(max-width:820px){.pdv{grid-template-columns:1fr}}
+.pdl{display:grid;grid-template-columns:minmax(0,1fr) 78px 84px 34px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--bd)}.pdl input{margin:0;text-align:right}
+.pdb{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px}.pdb .card{margin:0;padding:10px 12px}@media(max-width:820px){.pds.e{display:none}}
+.pdt{font-size:28px;font-weight:700}.pdr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0}.pdm{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}.pdm .sm.on{border-color:var(--pr);color:var(--pr)}
+.pdi{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--bd);border-radius:0;padding:10px 4px;cursor:pointer;font:inherit;color:inherit}.pdi:hover:not(:disabled){background:var(--bg)}.pdi:disabled{opacity:.5;cursor:not-allowed}.ssum b{display:block;font-size:20px;margin-top:2px}input[type=search]{-webkit-appearance:none}
 .chip.ok{border-color:var(--ok);color:var(--ok)}.chip.no{border-color:var(--no);color:var(--no);opacity:.8}
 .bd{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:99px;font-weight:700;font-size:13px;color:#fff}
 .Bronze{background:var(--bz)}.Prata{background:var(--pt)}.Ouro{background:var(--ou)}.Nenhuma{background:var(--mu)}
@@ -146,10 +152,10 @@ const fillT=(t,v)=>String(t).replace(/\{(\w+)\}/g,(m,k)=>k in v?v[k]:m);
 function toast(m){const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3800)}
 function setBell(){const b=$('#bn');if(b){b.textContent=S.unread||0;b.hidden=!S.unread}const t=$('#mi-avisos');if(t)t.textContent='Avisos'+(S.unread?` (${S.unread})`:'')}
 function resetAll(){FL=null;HL='';S=null;P=J=null;jobs=[];apps=[];cands=[];NT=null;MG=null;IG=null;team=[];X.items=null;F={...defF};mv=null;lastMv={};stF='all';sel=null;applying=null;sec={}}
-const CRL={admin:'Administrador',rh:'RH',recrutador:'Recrutador',gestor:'Gestor (somente leitura)'};
-const TITLES={perfil:'Editar currículo e perfil',cands:'Minhas candidaturas',avisos:'Avisos',ext:'Vagas de outras plataformas',seg:'Segurança',nova:'Nova vaga',msgs:'Mensagens automáticas',integ:'Integrações',equipe:'Equipe'};
+const CRL={admin:'Administrador',rh:'RH',recrutador:'Recrutador',gestor:'Gestor (somente leitura)',estoque:'Estoque e loja',vendas:'Vendas e caixa'};
+const TITLES={perfil:'Editar currículo e perfil',cands:'Minhas candidaturas',avisos:'Avisos',ext:'Vagas de outras plataformas',seg:'Segurança',nova:'Nova vaga',msgs:'Mensagens automáticas',integ:'Integrações',equipe:'Equipe',estoque:'Produtos e estoque',clientes:'Clientes e fiado',pdv:'Caixa e vendas'};
 const menuItems=()=>S.role==='cand'?[['vagas','Vagas abertas'],['perfil','Editar currículo e perfil'],['cands','Minhas candidaturas'],['avisos','Avisos'],['ext','Vagas de outras plataformas'],['seg','Segurança']]
-:[['vagas','Vagas e ranking'],...(can('jobs')?[['nova','Nova vaga']]:[]),['msgs','Mensagens automáticas'],...(can('integ')?[['integ','Integrações']]:[]),...(can('team')?[['equipe','Equipe']]:[]),['seg','Segurança']];
+:S.crole==='estoque'?[['estoque','Produtos e estoque'],['seg','Segurança']]:S.crole==='vendas'?[['pdv','Caixa e vendas'],['clientes','Clientes e fiado'],['estoque','Produtos e estoque'],['seg','Segurança']]:[['vagas','Vagas e ranking'],...(can('jobs')?[['nova','Nova vaga']]:[]),...(can('pdvR')?[['pdv','Caixa e vendas']]:[]),...(can('storeR')?[['estoque','Produtos e estoque']]:[]),...(can('custR')?[['clientes','Clientes e fiado']]:[]),['msgs','Mensagens automáticas'],...(can('integ')?[['integ','Integrações']]:[]),...(can('team')?[['equipe','Equipe']]:[]),['seg','Segurança']];
 function hdHtml(){const c=S.role==='cand',nm=S.name||'',
 sub=c?esc(S.email||'Candidato'):`${esc(CRL[S.crole]||'Recrutador')} · ${esc(S.company.name)}<br>Plano ${esc(S.company.limits.name)} · ${S.company.jobsOpen}/${S.company.limits.jobs} vagas abertas`;
 const items=menuItems().map(([k,l])=>`<button role="menuitem"${k==='avisos'?' id="mi-avisos"':''}${tab===k?' aria-current="page"':''} onclick="goTab('${k}')">${k==='avisos'&&S.unread?l+' ('+S.unread+')':l}</button>`).join('');
@@ -161,12 +167,13 @@ document.addEventListener('click',e=>{if(!e.target.closest('#mn,#pbtn'))closeMen
 document.addEventListener('keydown',e=>{const m=$('#mn');if(!m||m.hidden)return;
 if(e.key==='Escape'){closeMenu(1);return}if(e.key==='Tab'){closeMenu();return}
 if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const b=[...m.querySelectorAll('button')],i=b.indexOf(document.activeElement);b[(i+(e.key==='ArrowDown'?1:-1)+b.length)%b.length].focus()}});
-const pgHd=t=>`<div class="pg"><button class="back" onclick="goTab('vagas')">← Voltar às vagas</button><h1 class="ph" tabindex="-1">${t}</h1></div>`;
-function goHome(){if(S)goTab('vagas')}
+const homeTab=()=>S&&S.role==='rec'&&S.crole==='estoque'?'estoque':S&&S.role==='rec'&&S.crole==='vendas'?'pdv':'vagas';
+const pgHd=t=>`<div class="pg">${tab===homeTab()?'':'<button class="back" onclick="goTab(homeTab())">← Voltar</button>'}<h1 class="ph" tabindex="-1">${t}</h1></div>`;
+function goHome(){if(S)goTab(homeTab())}
 async function syncRec(){try{const[j,a,c]=await Promise.all([api('GET','/jobs'),api('GET','/apps').catch(()=>apps),api('GET','/candidates').catch(()=>cands)]);jobs=j;apps=a;cands=c;S=await api('GET','/me');if(!mv)render()}catch(e){}}
 async function syncVagas(){if(S.role==='rec')return syncRec();try{[jobs,apps]=await Promise.all([api('GET','/jobs'),api('GET','/apps')]);if(tab==='vagas'&&!applying)render()}catch(e){}}
 function goTab(t){tab=t;applying=null;sel=null;mv=null;HL='';if(t==='nova'){FL=null;J=J||newJ()}render();scrollTo(0,0);const h=$('.ph');if(h)h.focus({preventScroll:true});
-if(t==='ext'&&!X.items)loadExt();if(t==='avisos')loadAv();if(t==='equipe')loadTeam();if(t==='msgs')loadMsgs();if(t==='integ')loadInteg();if(t==='cands')refreshApps();if(t==='vagas')syncVagas()}
+if(t==='ext'&&!X.items)loadExt();if(t==='avisos')loadAv();if(t==='equipe')loadTeam();if(t==='estoque')loadStock();if(t==='clientes')loadCust();if(t==='pdv')loadPdv();if(t==='msgs')loadMsgs();if(t==='integ')loadInteg();if(t==='cands')refreshApps();if(t==='vagas')syncVagas()}
 async function api(m,u,b){const r=await fetch('/api'+u,{method:m,credentials:'same-origin',headers:{'Content-Type':'application/json','X-Requested-With':'talentos'},body:b?JSON.stringify(b):undefined});
 const d=await r.json().catch(()=>({}));if(r.status===401&&S&&u!=='/me'){resetAll();render()}if(!r.ok)throw new Error(d.error||'Erro de comunicação com o servidor.');return d}
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -335,7 +342,7 @@ async function init(){for(const k in SUG)$('#'+k).innerHTML=SUG[k].map(x=>`<opti
 if(location.hash.startsWith('#reset=')){rtok=location.hash.slice(7);mode='reset';history.replaceState(null,'',location.pathname)}
 if(!rtok){try{S=await api('GET','/me');await refresh()}catch(e){S=null}}
 if(DL){try{DL.job=await api('GET','/public/job/'+DL.key)}catch(e){DL.job=null}}go()}
-function go(){if(S){tab='vagas';if(S.role==='cand')P=norm(clone(S.p));sel=null;applying=null}render();dlFocus()}
+function go(){if(S){ST={items:null,cats:[],sum:null,q:'',cat:'',low:false,fm:null,mvf:null,hist:null,err:''};CU={items:null,sum:null,q:'',owe:false,fm:null,op:null,hist:null,err:''};PD={ses:null,sales:[],moves:[],items:null,custs:[],hist:[],q:'',cart:[],disc:'',pays:[],cust:'',panel:null,fm:{},done:null,err:''};tab=homeTab();if(S.role==='cand')P=norm(clone(S.p));sel=null;applying=null}render();if(tab==='estoque')loadStock();if(tab==='clientes')loadCust();if(tab==='pdv')loadPdv();dlFocus()}
 function render(){document.body.classList.toggle('auth',!S);
 $('#hd').innerHTML=S?hdHtml():'';
 $('#app').innerHTML=!S?vAuth():S.role==='cand'?vCand():vRec();
@@ -349,7 +356,7 @@ function vAuth(){const r=mode==='reg',em='<label>E-mail<input id="em" type="emai
 const pw=l=>`<label>${l}<input id="pw" type="password" maxlength="128" autocomplete="${mode==='login'?'current-password':'new-password'}"></label><br>`;
 const T={login:'Entrar',reg:'Criar conta',forgot:'Recuperar senha',reset:'Nova senha'}[mode],B={login:'Entrar',reg:'Cadastrar',forgot:'Enviar link',reset:'Salvar nova senha'}[mode];
 const f=pend?'<label>Código de 6 dígitos do app autenticador (ou código de recuperação)<input id="c2" inputmode="numeric" autocomplete="one-time-code" maxlength="20"></label><br>':mode==='forgot'?em:mode==='reset'?pw('Nova senha (10+ caracteres, com letras e números)'):
-(r?`<div class="seg"><button class="${role==='cand'?'on':''}" onclick="setR('cand')">Sou candidato</button><button class="${role==='rec'?'on':''}" onclick="setR('rec')">Sou recrutador</button></div><label>Nome<input id="nm" maxlength="80"></label><br>`:'')+em+pw('Senha'+(r?' (10+ caracteres, com letras e números)':''))+(r&&role==='rec'?'<label>Nome da empresa<input id="co" maxlength="80"></label><br><label>Código de convite da plataforma<input id="cd" autocomplete="off"></label><br>':'');
+(r?`<div class="seg"><button class="${role==='cand'?'on':''}" onclick="setR('cand')">Sou candidato</button><button class="${role==='rec'?'on':''}" onclick="setR('rec')">Sou recrutador</button></div><label>Nome<input id="nm" maxlength="80"></label><br>`:'')+em+(r&&role==='cand'?'<label>Telefone com DDD (WhatsApp)<input id="tl" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="(91) 98888-7777" maxlength="15" oninput="mk(this)"></label><br>':'')+pw('Senha'+(r?' (10+ caracteres, com letras e números)':''))+(r&&role==='rec'?'<label>Nome da empresa<input id="co" maxlength="80"></label><br><label>Código de convite da plataforma<input id="cd" autocomplete="off"></label><br>':'');
 const dl=DL?(DL.job?`<div class="tip" role="status"><b>${esc(DL.job.title)}</b> · ${esc(DL.job.company)}${DL.job.place?' · 📍 '+esc(DL.job.place):''}<br>Entre ou crie sua conta de candidato para se candidatar a esta vaga.</div>`:`<div class="tip" role="status">Esta vaga não está mais disponível. Depois de entrar, você vê as outras vagas abertas.</div>`):'';
 const card=`<div class="card authcard">${dl}<h2>${pend?'Verificação em duas etapas':T}</h2>${f}<div class="${note?'mu':'err'}" id="er">${esc(note)}</div>
 <button class="pri" style="width:100%" onclick="auth()">${pend?'Confirmar':B}</button>
@@ -366,7 +373,7 @@ return`<section class="stage"><div class="hero"><div class="mark"><svg width="28
 async function auth(){try{
 if(mode==='forgot'){await api('POST','/forgot',{email:$('#em').value});note='Se o e-mail estiver cadastrado, enviamos um link de recuperação (válido por 30 min). Confira também o spam.';mode='login';return render()}
 if(mode==='reset'){await api('POST','/reset',{token:rtok,password:$('#pw').value});rtok='';mode='login';note='Senha alterada! Entre com a nova senha.';return render()}
-const r=mode==='reg',body=pend?{...pend,code:$('#c2').value}:{name:r?$('#nm').value:'',email:$('#em').value,password:$('#pw').value,role,code:$('#cd')?.value,company:$('#co')?.value};
+const r=mode==='reg',body=pend?{...pend,code:$('#c2').value}:{name:r?$('#nm').value:'',email:$('#em').value,password:$('#pw').value,role,code:$('#cd')?.value,company:$('#co')?.value,phone:$('#tl')?.value};
 const d=await api('POST',r?'/register':'/login',body);
 if(d.need2fa){pend={email:body.email,password:body.password};note='';return render()}
 pend=null;note='';S=d.user;await refresh();go()}catch(e){er(e.message)}}
@@ -475,11 +482,191 @@ if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||'Não 
 const b=await r.blob(),m=/filename="([^"]+)"/.exec(r.headers.get('Content-Disposition')||''),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=m?m[1]:'curriculo';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1e4)}catch(e){alert(e.message)}}
 async function rmCV(){if(!confirm('Remover o seu currículo do sistema?'))return;try{S=await api('DELETE','/cv');render();toast('Currículo removido')}catch(e){alert(e.message)}}
 /* ---------- recrutador ---------- */
-const can=k=>({jobs:['admin','rh'],move:['admin','rh','recrutador'],team:['admin'],integ:['admin']}[k]||[]).includes(S.crole);
-function vRec(){const hd=tab==='vagas'?'':pgHd(TITLES[tab]||'');
+const can=k=>({jobs:['admin','rh'],move:['admin','rh','recrutador'],team:['admin'],integ:['admin'],stock:['admin','estoque'],storeR:['admin','gestor','estoque','vendas'],storeAdmin:['admin'],cust:['admin','vendas'],custR:['admin','gestor','vendas'],custAdmin:['admin'],pdv:['admin','vendas'],pdvR:['admin','gestor','vendas'],pdvAdmin:['admin']}[k]||[]).includes(S.crole);
+function vRec(){const hd=tab==='vagas'?'':pgHd(TITLES[tab]||'');if(tab==='estoque')return hd+vEstoque();if(tab==='clientes')return hd+vClientes();if(tab==='pdv')return hd+vPdv();
 return hd+(S.req2&&!S.t2?`<div class="card" style="border-color:var(--no)">🔒 Ative a verificação em duas etapas para acessar os candidatos. <a href="#" onclick="goTab('seg');return false">Abrir Segurança</a></div>`:'')+(tab==='seg'?vSeg():tab==='nova'?(FL?vFlyer():vNova()):tab==='equipe'?vEquipe():tab==='msgs'?vMsgs():tab==='integ'?vInteg():sel?vRank():vLista())}
+/* ---------- Loja · produtos e estoque (dinheiro em centavos, quantidades em milésimos) ---------- */
+let ST={items:null,cats:[],sum:null,q:'',cat:'',low:false,fm:null,mvf:null,hist:null,err:''};
+const UN={un:'un',kg:'kg',g:'g',l:'L',ml:'mL',m:'m',cx:'cx',pct:'pct'};
+const BRL=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const QF=(q,u)=>(q/1000).toLocaleString('pt-BR',{maximumFractionDigits:3})+' '+(UN[u]||u);
+const qStr=q=>q?String(q/1000).replace('.',','):'';
+const cStr=c=>c?(c/100).toFixed(2).replace('.',','):'';
+const toCents=s=>{s=String(s??'').replace(/[R$\s]/g,'');if(!s)return 0;if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');if(!/^\d+(\.\d{1,2})?$/.test(s))return NaN;const[a,b='']=s.split('.');return +a*100+ +(b+'00').slice(0,2)};
+async function loadStock(){try{const[a,s]=await Promise.all([api('GET','/erp/items'),api('GET','/erp/summary')]);ST.items=a.items;ST.cats=a.cats;ST.sum=s;ST.err=''}catch(e){ST.err=e.message;ST.items=ST.items||[]}render()}
+const stLow=it=>it.active&&(it.q<=0||(it.min>0&&it.q<=it.min));
+function stList(){const q=ST.q.trim().toLowerCase(),w=can('stock');
+const l=ST.items.filter(it=>(!ST.cat||it.cat===ST.cat)&&(!ST.low||stLow(it))&&(!q||[it.name,it.sku,it.barcode,it.cat].join(' ').toLowerCase().includes(q)));
+if(!l.length)return`<div class="card mu">${ST.items.length?'Nenhum produto com esse filtro.':'Nenhum produto cadastrado ainda.'+(w?' Clique em "Novo produto" para começar.':'')}</div>`;
+return l.map(it=>{const bad=stLow(it),mg=it.price>0?` · Margem ${Math.round((it.price-it.cost)*100/it.price)}%`:'';
+return`<div class="card sprod${it.active?'':' off'}"><div class="row"><div style="min-width:0"><b>${esc(it.name)}</b>${it.active?'':' <span class="chip">Inativo</span>'}<div class="mu">${esc(it.sku)}${it.cat?' · '+esc(it.cat):''}${it.barcode?' · '+esc(it.barcode):''}</div></div>
+<div style="text-align:right"><span class="chip ${bad?'no':'ok'}">${it.q<=0?'Sem estoque':QF(it.q,it.unit)}</span><div class="mu">${it.min?'mínimo '+QF(it.min,it.unit):'sem mínimo'}</div></div></div>
+<div class="row" style="margin-top:8px"><div class="mu">Preço <b>${BRL(it.price)}</b> · Custo ${BRL(it.cost)}${mg}</div><div>${w&&it.active?`<button class="sm" onclick="stMove('${it.id}','in')">Entrada</button> <button class="sm" onclick="stMove('${it.id}','out')">Saída</button> <button class="sm" onclick="stMove('${it.id}','adjust')">Ajustar</button> `:''}${w?`<button class="sm" onclick="stEdit('${it.id}')">Editar</button> `:''}<button class="sm" onclick="stHist('${it.id}')">Histórico</button></div></div></div>`}).join('')}
+const stRe=()=>{const e=$('#stl');if(e)e.innerHTML=stList()};
+function vEstoque(){if(ST.items===null)return'<div class="card mu">Carregando…</div>';const w=can('stock'),s=ST.sum||{n:0,low:0,zero:0,cost:0,sale:0};
+const cards=[['Produtos ativos',s.n],['Valor em estoque (custo)',BRL(s.cost)],['Valor de venda do estoque',BRL(s.sale)],['Em alerta (abaixo do mínimo ou sem estoque)',ST.items.filter(stLow).length||'Nenhum']];
+return(ST.err?`<div class="card err">${esc(ST.err)}</div>`:'')+`<div class="g ssum">${cards.map(([l,v])=>`<div class="card ssum"><div class="mu">${l}</div><b>${v}</b></div>`).join('')}</div>`
++`<div class="card row"><input id="stq" type="search" placeholder="Nome, código ou categoria" aria-label="Buscar produtos" value="${esc(ST.q)}" oninput="ST.q=this.value;stRe()" style="flex:1;min-width:180px;margin:0">
+<select aria-label="Categoria" onchange="ST.cat=this.value;stRe()" style="width:auto;margin:0"><option value="">Todas as categorias</option>${ST.cats.map(c=>`<option${ST.cat===c?' selected':''}>${esc(c)}</option>`).join('')}</select>
+<label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" style="width:auto;margin:0" ${ST.low?'checked':''} onchange="ST.low=this.checked;stRe()"> Só em alerta</label>${w?'<button class="pri" onclick="stNew()">Novo produto</button>':''}</div>`
++(ST.fm?stForm():'')+(ST.mvf?stMvPanel():'')+(ST.hist?stHistPanel():'')+`<div id="stl">${stList()}</div>`}
+function stOpen(){render();setTimeout(()=>{const e=$('#stp');if(e){e.scrollIntoView({behavior:'smooth',block:'start'});const i=e.querySelector('input,select');if(i)i.focus({preventScroll:true})}},0)}
+function stNew(){ST.fm={id:null,name:'',sku:'',barcode:'',cat:'',unit:'un',cost:'',price:'',min:'',qty:'',active:true};ST.mvf=null;ST.hist=null;stOpen()}
+function stEdit(id){const it=ST.items.find(x=>x.id===id);if(!it)return;ST.fm={id,name:it.name,sku:it.sku,barcode:it.barcode,cat:it.cat,unit:it.unit,cost:cStr(it.cost),price:cStr(it.price),min:qStr(it.min),qty:'',active:it.active};ST.mvf=null;ST.hist=null;stOpen()}
+const fi=(l,k,ex='')=>`<label>${l}<input ${ex} value="${esc(ST.fm[k])}" oninput="ST.fm.${k}=this.value"></label>`;
+function stForm(){const f=ST.fm,nw=!f.id;
+return`<div class="card" id="stp"><h3>${nw?'Novo produto':'Editar produto'}</h3><div class="g">${fi('Nome','name','maxlength="120"')}${fi('Código (SKU) — vazio gera automático','sku','maxlength="40"')}${fi('Código de barras','barcode','inputmode="numeric" maxlength="20"')}
+<label>Categoria<input list="dl-cat" maxlength="60" value="${esc(f.cat)}" oninput="ST.fm.cat=this.value"><datalist id="dl-cat">${ST.cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></label>
+<label>Unidade<select onchange="ST.fm.unit=this.value">${Object.entries(UN).map(([k,v])=>`<option value="${k}"${f.unit===k?' selected':''}>${v}</option>`).join('')}</select></label>
+${fi('Custo unitário (R$)','cost','inputmode="decimal" placeholder="0,00"')}${fi('Preço de venda (R$)','price','inputmode="decimal" placeholder="0,00"')}${fi('Estoque mínimo (alerta)','min','inputmode="decimal" placeholder="0"')}
+${nw?fi('Estoque inicial','qty','inputmode="decimal" placeholder="0"'):''}</div>
+${nw?'':`<label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--tx)"><input type="checkbox" style="width:auto;margin:0" ${f.active?'checked':''} onchange="ST.fm.active=this.checked"> Produto ativo (desmarque para parar de vender sem perder o histórico)</label>`}
+<p class="mu">O estoque só muda por entradas, saídas e ajustes, para ficar tudo registrado. Quantidades fracionadas (ex.: 2,5 kg) só valem para unidades que não sejam "un".</p>
+<div class="err" id="er"></div><button class="pri" onclick="stSave()">Salvar</button> <button onclick="ST.fm=null;render()">Cancelar</button>${!nw&&can('storeAdmin')?` <button class="sm" style="float:right;color:var(--no)" onclick="stDel('${f.id}')">Excluir produto</button>`:''}</div>`}
+async function stSave(){const f=ST.fm,cost=toCents(f.cost),price=toCents(f.price);
+if(f.name.trim().length<2)return er('Informe o nome do produto.');if(isNaN(cost)||isNaN(price))return er('Valor inválido. Use o formato 12,50.');
+const body={name:f.name,sku:f.sku,barcode:f.barcode,cat:f.cat,unit:f.unit,cost,price,min:f.min||'0'};if(!f.id)body.qty=f.qty;else body.active=f.active;
+try{if(f.id)await api('PATCH','/erp/items/'+f.id,body);else await api('POST','/erp/items',body);ST.fm=null;await loadStock();toast('Produto salvo')}catch(e){er(e.message)}}
+async function stDel(id){const it=ST.items.find(x=>x.id===id);if(!it||!confirm('Excluir "'+it.name+'" e todo o seu histórico de estoque? Isso não pode ser desfeito. Para só parar de vender, desmarque "Produto ativo".'))return;try{await api('DELETE','/erp/items/'+id);ST.fm=null;await loadStock();toast('Produto excluído')}catch(e){er(e.message)}}
+const MVT={in:'Entrada',out:'Saída',adjust:'Ajuste de inventário'};
+function stMove(id,type){ST.mvf={id,type,qty:'',cost:'',reason:''};ST.fm=null;ST.hist=null;stOpen()}
+function stMvPanel(){const m=ST.mvf,it=ST.items.find(x=>x.id===m.id);if(!it)return'';
+return`<div class="card" id="stp"><h3>${MVT[m.type]} — ${esc(it.name)}</h3><p class="mu">Estoque atual: <b>${QF(it.q,it.unit)}</b>${m.type==='in'?' · Custo médio atual: '+BRL(it.cost):''}</p>
+<div class="g"><label>${m.type==='adjust'?'Quantidade contada (real)':'Quantidade ('+UN[it.unit]+')'}<input inputmode="decimal" placeholder="0" value="${esc(m.qty)}" oninput="ST.mvf.qty=this.value"></label>
+${m.type==='in'?`<label>Custo unitário desta compra (R$) — opcional<input inputmode="decimal" placeholder="${cStr(it.cost)||'0,00'}" value="${esc(m.cost)}" oninput="ST.mvf.cost=this.value"></label>`:''}
+<label>Motivo (opcional)<input maxlength="120" placeholder="${m.type==='in'?'Ex.: compra do fornecedor':m.type==='out'?'Ex.: perda, uso interno, venda':'Ex.: inventário de dezembro'}" value="${esc(m.reason)}" oninput="ST.mvf.reason=this.value"></label></div>
+${m.type==='in'?'<p class="mu">Se informar o custo, o sistema recalcula o custo médio do produto.</p>':m.type==='adjust'?'<p class="mu">Informe a quantidade real em prateleira: o sistema registra a diferença.</p>':''}
+<div class="err" id="er"></div><button class="pri" onclick="stMvSave()">Confirmar</button> <button onclick="ST.mvf=null;render()">Cancelar</button></div>`}
+async function stMvSave(){const m=ST.mvf,body={type:m.type,qty:m.qty,reason:m.reason};
+if(!String(m.qty).trim())return er('Informe a quantidade.');
+if(m.type==='in'&&String(m.cost).trim()){const c=toCents(m.cost);if(isNaN(c))return er('Custo inválido. Use o formato 12,50.');body.cost=c}
+try{await api('POST','/erp/items/'+m.id+'/move',body);ST.mvf=null;await loadStock();toast(MVT[m.type]+' registrada')}catch(e){er(e.message)}}
+async function stHist(id){try{const d=await api('GET','/erp/items/'+id+'/moves');ST.hist=d;ST.fm=null;ST.mvf=null;stOpen()}catch(e){ST.err=e.message;render()}}
+function stHistPanel(){const h=ST.hist,u=h.item.unit;
+return`<div class="card" id="stp"><div class="row"><h3 style="margin:0">Histórico — ${esc(h.item.name)}</h3><button class="sm" onclick="ST.hist=null;render()">Fechar</button></div><p class="mu">Saldo atual: <b>${QF(h.item.q,u)}</b> · últimas ${h.moves.length} movimentações</p>
+${h.moves.map(x=>`<div class="row" style="padding:8px 0;border-top:1px solid var(--bd)"><div><span class="chip ${x.type==='in'?'ok':x.type==='out'?'no':''}">${MVT[x.type]}</span> <b>${x.dq>0?'+':'−'}${QF(Math.abs(x.dq),u)}</b><div class="mu">${esc(x.reason||'')} · por ${esc(x.by||'')}</div></div><div class="mu" style="text-align:right">${new Date(x.t).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}<br>saldo ${QF(x.q,u)}</div></div>`).join('')||'<div class="mu">Sem movimentações.</div>'}</div>`}
+/* ---------- Loja · clientes e fiado ---------- */
+let CU={items:null,sum:null,q:'',owe:false,fm:null,op:null,hist:null,err:''};
+const docFmt=d=>d.length===11?d.replace(/(\d{3})(\d{3})(\d{3})(\d\d)/,'$1.$2.$3-$4'):d.length===14?d.replace(/(\d\d)(\d{3})(\d{3})(\d{4})(\d\d)/,'$1.$2.$3/$4-$5'):d;
+const waU=(ph,t)=>{let d=String(ph||'').replace(/\D/g,'');if(d.length<10||d.length>13)return'';if(d.length<=11)d='55'+d;return'https://wa.me/'+d+'?text='+encodeURIComponent(t)};
+async function loadCust(){try{const d=await api('GET','/erp/customers');CU.items=d.items;CU.sum=d.sum;CU.err=''}catch(e){CU.err=e.message;CU.items=CU.items||[]}render()}
+function cuList(){const q=CU.q.trim().toLowerCase().replace(/\s+/g,' '),qd=q.replace(/\D/g,''),w=can('cust');
+const l=CU.items.filter(c=>(!CU.owe||c.bal>0)&&(!q||c.name.toLowerCase().includes(q)||(qd&&(c.doc.includes(qd)||c.phone.replace(/\D/g,'').includes(qd)))));
+if(!l.length)return`<div class="card mu">${CU.items.length?'Nenhum cliente com esse filtro.':'Nenhum cliente cadastrado ainda.'+(w?' Clique em "Novo cliente" para começar.':'')}</div>`;
+return l.map(c=>{const wa=c.bal>0&&waU(c.phone,`Olá, ${c.name.split(' ')[0]}! Aqui é da ${S.company.name}. Seu saldo em aberto no fiado é de ${BRL(c.bal)}. Quando puder, podemos combinar o acerto? Obrigado!`);
+return`<div class="card scli${c.active?'':' off'}"><div class="row"><div style="min-width:0"><b>${esc(c.name)}</b>${c.active?'':' <span class="chip">Inativo</span>'}<div class="mu">${[c.doc?esc(docFmt(c.doc)):'',esc(c.phone),esc(c.city)].filter(Boolean).join(' · ')||'sem dados de contato'}</div></div>
+<div style="text-align:right"><span class="chip ${c.bal>0?'no':'ok'}">${c.bal>0?'Deve '+BRL(c.bal):'Em dia'}</span><div class="mu">${c.limit>0?'limite '+BRL(c.limit)+' · disponível '+BRL(Math.max(0,c.limit-c.bal)):'sem fiado liberado'}</div></div></div>
+<div class="row" style="margin-top:8px"><div class="mu">${c.bal>c.limit&&c.bal>0?'⚠ Saldo acima do limite':''}</div><div>${w&&c.active?`<button class="sm" onclick="cuOp('${c.id}','charge')">Lançar fiado</button> `:''}${w&&c.bal>0?`<button class="sm" onclick="cuOp('${c.id}','pay')">Receber</button> `:''}${wa?`<a class="btn sm" href="${esc(wa)}" target="_blank" rel="noopener noreferrer">Cobrar no WhatsApp</a> `:''}${w?`<button class="sm" onclick="cuEdit('${c.id}')">Editar</button> `:''}<button class="sm" onclick="cuHist('${c.id}')">Extrato</button></div></div></div>`}).join('')}
+const cuRe=()=>{const e=$('#cul');if(e)e.innerHTML=cuList()};
+function vClientes(){if(CU.items===null)return'<div class="card mu">Carregando…</div>';const w=can('cust'),s=CU.sum||{n:0,owing:0,total:0};
+const cards=[['Clientes ativos',s.n],['Total a receber (fiado)',BRL(s.total)],['Clientes devendo',s.owing||'Nenhum']];
+return(CU.err?`<div class="card err">${esc(CU.err)}</div>`:'')+`<div class="g ssum">${cards.map(([l,v])=>`<div class="card ssum"><div class="mu">${l}</div><b>${v}</b></div>`).join('')}</div>`
++`<div class="card row"><input id="cuq" type="search" placeholder="Nome, CPF/CNPJ ou telefone" aria-label="Buscar clientes" value="${esc(CU.q)}" oninput="CU.q=this.value;cuRe()" style="flex:1;min-width:180px;margin:0">
+<label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" style="width:auto;margin:0" ${CU.owe?'checked':''} onchange="CU.owe=this.checked;cuRe()"> Só devedores</label>${w?'<button class="pri" onclick="cuNew()">Novo cliente</button>':''}</div>`
++(CU.fm?cuForm():'')+(CU.op?cuOpPanel():'')+(CU.hist?cuHistPanel():'')+`<div id="cul">${cuList()}</div>`}
+function cuOpen(){render();setTimeout(()=>{const e=$('#cup');if(e){e.scrollIntoView({behavior:'smooth',block:'start'});const i=e.querySelector('input,select');if(i)i.focus({preventScroll:true})}},0)}
+function cuNew(){CU.fm={id:null,name:'',doc:'',phone:'',email:'',city:'',limit:'',notes:'',active:true};CU.op=null;CU.hist=null;cuOpen()}
+function cuEdit(id){const c=CU.items.find(x=>x.id===id);if(!c)return;CU.fm={id,name:c.name,doc:c.doc?docFmt(c.doc):'',phone:c.phone,email:c.email,city:c.city,limit:cStr(c.limit),notes:c.notes,active:c.active};CU.op=null;CU.hist=null;cuOpen()}
+const cf=(l,k,ex='')=>`<label>${l}<input ${ex} value="${esc(CU.fm[k])}" oninput="CU.fm.${k}=this.value"></label>`;
+function cuForm(){const f=CU.fm,nw=!f.id;
+return`<div class="card" id="cup"><h3>${nw?'Novo cliente':'Editar cliente'}</h3><div class="g">${cf('Nome','name','maxlength="100"')}${cf('CPF ou CNPJ (opcional)','doc','inputmode="numeric" maxlength="18"')}
+<label>Telefone com DDD (WhatsApp)<input type="tel" inputmode="numeric" maxlength="15" placeholder="(91) 98888-7777" value="${esc(f.phone)}" oninput="mk(this);CU.fm.phone=this.value"></label>${cf('E-mail','email','type="email" maxlength="120"')}${cf('Cidade','city','maxlength="80"')}${cf('Limite de fiado (R$) — 0 = sem fiado','limit','inputmode="decimal" placeholder="0,00"')}</div>
+<label>Observações<textarea rows="2" maxlength="300" oninput="CU.fm.notes=this.value">${esc(f.notes)}</textarea></label>
+${nw?'':`<label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--tx);margin-top:8px"><input type="checkbox" style="width:auto;margin:0" ${f.active?'checked':''} onchange="CU.fm.active=this.checked"> Cliente ativo</label>`}
+<div class="err" id="er"></div><button class="pri" onclick="cuSave()">Salvar</button> <button onclick="CU.fm=null;render()">Cancelar</button>${!nw&&can('custAdmin')?` <button class="sm" style="float:right;color:var(--no)" onclick="cuDel('${f.id}')">Excluir cliente</button>`:''}</div>`}
+async function cuSave(){const f=CU.fm,limit=toCents(f.limit);if(f.name.trim().length<2)return er('Informe o nome do cliente.');if(isNaN(limit))return er('Limite inválido. Use o formato 150,00.');
+const body={name:f.name,doc:f.doc,phone:f.phone,email:f.email,city:f.city,notes:f.notes,limit};if(f.id)body.active=f.active;
+try{if(f.id)await api('PATCH','/erp/customers/'+f.id,body);else await api('POST','/erp/customers',body);CU.fm=null;await loadCust();toast('Cliente salvo')}catch(e){er(e.message)}}
+async function cuDel(id){const c=CU.items.find(x=>x.id===id);if(!c||!confirm('Excluir "'+c.name+'" e todo o extrato? Isso não pode ser desfeito. Para só parar de vender fiado, use limite 0 ou desative o cliente.'))return;try{await api('DELETE','/erp/customers/'+id);CU.fm=null;await loadCust();toast('Cliente excluído')}catch(e){er(e.message)}}
+const PAYL={cash:'Dinheiro',pix:'Pix',card:'Cartão',transfer:'Transferência'};
+function cuOp(id,type){CU.op={id,type,amount:'',note:'',method:'cash'};CU.fm=null;CU.hist=null;cuOpen()}
+function cuOpPanel(){const o=CU.op,c=CU.items.find(x=>x.id===o.id);if(!c)return'';const ch=o.type==='charge';
+return`<div class="card" id="cup"><h3>${ch?'Lançar fiado':'Receber pagamento'} — ${esc(c.name)}</h3><p class="mu">Deve agora: <b>${BRL(c.bal)}</b>${ch?' · Limite disponível: <b>'+BRL(Math.max(0,c.limit-c.bal))+'</b>':''}</p>
+<div class="g"><label>Valor (R$)<input inputmode="decimal" placeholder="0,00" value="${esc(o.amount)}" oninput="CU.op.amount=this.value"></label>
+${ch?'':`<label>Forma de pagamento<select onchange="CU.op.method=this.value">${Object.entries(PAYL).map(([k,v])=>`<option value="${k}"${o.method===k?' selected':''}>${v}</option>`).join('')}</select></label>`}
+<label>Observação (opcional)<input maxlength="120" placeholder="${ch?'Ex.: compras da semana':'Ex.: pagou no balcão'}" value="${esc(o.note)}" oninput="CU.op.note=this.value"></label></div>
+<div class="err" id="er"></div><button class="pri" onclick="cuOpSave()">Confirmar</button> <button onclick="CU.op=null;render()">Cancelar</button>${ch?'':` <button class="sm" onclick="CU.op.amount=cStr(${c.bal});cuOpen()">Quitar tudo (${BRL(c.bal)})</button>`}</div>`}
+async function cuOpSave(){const o=CU.op,v=toCents(o.amount);if(!o.amount.trim()||isNaN(v)||v<=0)return er('Informe um valor válido. Use o formato 25,90.');
+try{await api('POST','/erp/customers/'+o.id+'/'+o.type,{amount:v,note:o.note,method:o.method});CU.op=null;await loadCust();toast(o.type==='charge'?'Fiado lançado':'Pagamento recebido')}catch(e){er(e.message)}}
+async function cuHist(id){try{CU.hist=await api('GET','/erp/customers/'+id+'/ledger');CU.fm=null;CU.op=null;cuOpen()}catch(e){CU.err=e.message;render()}}
+function cuHistPanel(){const h=CU.hist,c=h.customer;
+return`<div class="card" id="cup"><div class="row"><h3 style="margin:0">Extrato — ${esc(c.name)}</h3><button class="sm" onclick="CU.hist=null;render()">Fechar</button></div><p class="mu">Saldo devedor: <b>${BRL(c.bal)}</b> · últimos ${h.moves.length} lançamentos</p>
+${h.moves.map(x=>`<div class="row" style="padding:8px 0;border-top:1px solid var(--bd)"><div><span class="chip ${x.type==='charge'?'no':'ok'}">${x.type==='charge'?'Fiado':'Pagamento'+(x.method?' · '+PAYL[x.method]:'')}</span> <b>${x.dc>0?'+':'−'}${BRL(Math.abs(x.dc))}</b><div class="mu">${esc(x.note||'')} · por ${esc(x.by||'')}</div></div><div class="mu" style="text-align:right">${new Date(x.t).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}<br>saldo ${BRL(x.bal)}</div></div>`).join('')||'<div class="mu">Sem lançamentos.</div>'}</div>`}
+/* ---------- Loja · caixa e vendas (PDV) ---------- */
+let PD={ses:null,sales:[],moves:[],items:null,custs:[],hist:[],q:'',cart:[],disc:'',pays:[],cust:'',panel:null,fm:{},done:null,err:''};
+const PAYN={cash:'Dinheiro',pix:'Pix',card:'Cartão',fiado:'Fiado'};
+const hhmm=t=>new Date(t).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+async function loadPdv(){try{const[s,i,h]=await Promise.all([api('GET','/erp/pdv/session'),api('GET','/erp/items'),api('GET','/erp/pdv/sessions')]);PD.ses=s.session;PD.sales=s.sales;PD.moves=s.moves;PD.items=i.items.filter(x=>x.active);PD.hist=h.sessions;
+if(can('custR')){try{PD.custs=(await api('GET','/erp/customers')).items.filter(c=>c.active)}catch{PD.custs=[]}}PD.err=''}catch(e){PD.err=e.message;PD.items=PD.items||[]}render()}
+const pdQ=s=>{s=String(s??'').trim().replace(',','.');return/^\d+(\.\d{1,3})?$/.test(s)?Math.round(parseFloat(s)*1000):NaN};
+const pdLine=l=>{const q=pdQ(l.q);return isNaN(q)?0:Math.round(q*l.price/1000)};
+const pdSub=()=>PD.cart.reduce((a,l)=>a+pdLine(l),0),pdDisc=()=>{const d=toCents(PD.disc);return isNaN(d)?0:d},pdTot=()=>Math.max(0,pdSub()-pdDisc());
+const pdPaid=()=>PD.pays.reduce((a,p)=>{const v=toCents(p.v);return a+(isNaN(v)?0:v)},0);
+const pdStock=id=>(PD.items.find(x=>x.id===id)||{q:0}).q;
+function pdBad(){for(const l of PD.cart){const q=pdQ(l.q);if(isNaN(q)||q<=0)return'Quantidade inválida em "'+l.name+'".';if(l.unit==='un'&&q%1000)return'"'+l.name+'" aceita só quantidade inteira.'}
+const need={};for(const l of PD.cart){need[l.id]=(need[l.id]||0)+pdQ(l.q);if(need[l.id]>pdStock(l.id))return'Estoque insuficiente de "'+l.name+'" (disponível '+QF(pdStock(l.id),l.unit)+').'}return''}
+function pdResults(){const q=PD.q.trim().toLowerCase(),l=PD.items.filter(it=>!q||[it.name,it.sku,it.barcode,it.cat].join(' ').toLowerCase().includes(q)).slice(0,q?10:8);
+return l.length?l.map(it=>`<button class="pdi" ${it.q<=0?'disabled':''} onclick="pdAdd('${it.id}')"><span><b>${esc(it.name)}</b><span class="mu"> · ${esc(it.sku)}</span></span><span>${BRL(it.price)} <span class="mu">${it.q<=0?'sem estoque':QF(it.q,it.unit)}</span></span></button>`).join(''):'<div class="mu" style="padding:8px 0">Nenhum produto encontrado.</div>'}
+const pdSearchRe=()=>{const e=$('#psr');if(e){e.innerHTML=pdResults();e.classList.toggle('e',!PD.q)}};
+function pdSearch(v){PD.q=v;pdSearchRe()}
+function pdKey(e){if(e.key!=='Enter')return;e.preventDefault();const q=PD.q.trim().toLowerCase();if(!q)return;
+let it=PD.items.find(x=>x.q>0&&(x.barcode===q||x.sku.toLowerCase()===q));if(!it){const l=PD.items.filter(x=>x.q>0&&[x.name,x.sku,x.barcode,x.cat].join(' ').toLowerCase().includes(q));if(l.length===1)it=l[0]}
+if(it)pdAdd(it.id)}
+function pdAdd(id){const it=PD.items.find(x=>x.id===id);if(!it||it.q<=0)return;const l=PD.cart.find(x=>x.id===id);if(l){const q=pdQ(l.q);l.q=String(((isNaN(q)?0:q)+1000)/1000).replace('.',',')}else PD.cart.push({id,name:it.name,unit:it.unit,price:it.price,q:'1'});
+PD.q='';const s=$('#pdq');if(s){s.value='';s.focus()}pdSearchRe();pdRe()}
+const pdQty=(i,v)=>{PD.cart[i].q=v;pdRe()},pdDel=i=>{PD.cart.splice(i,1);pdRe()},pdDiscSet=v=>{PD.disc=v;pdRe()};
+function pdPay(m){const f=PD.pays.find(p=>p.m===m);if(f)return;const rest=Math.max(0,pdTot()-pdPaid());PD.pays.push({m,v:rest?cStr(rest):'',recv:''});pdRe()}
+const pdPayV=(i,v)=>{PD.pays[i].v=v;pdRe()},pdRecv=(i,v)=>{PD.pays[i].recv=v;pdRe()},pdPayDel=i=>{PD.pays.splice(i,1);pdRe()};
+function pdRe(){const t=pdTot();if(PD.pays.length===1&&PD.cart.length)PD.pays[0].v=t?cStr(t):'';const e=$('#pcart');if(e)e.innerHTML=pdCart()}
+function pdCart(){const sub=pdSub(),t=pdTot(),paid=pdPaid(),bad=pdBad(),rest=t-paid,hasF=PD.pays.some(p=>p.m==='fiado');
+const cash=PD.pays.find(p=>p.m==='cash'),rv=cash?toCents(cash.recv):NaN,cv=cash?toCents(cash.v):0,troco=cash&&!isNaN(rv)&&rv>cv?rv-cv:0;
+const okf=PD.cart.length&&t>0&&!bad&&rest===0&&(!hasF||PD.cust);
+return`<h3 style="margin-top:0">Venda atual</h3>`+(PD.cart.length?PD.cart.map((l,i)=>`<div class="pdl"><div style="min-width:0"><b>${esc(l.name)}</b><div class="mu">${BRL(l.price)} / ${UN[l.unit]}</div></div><input class="pq" inputmode="decimal" aria-label="Quantidade de ${esc(l.name)}" value="${esc(l.q)}" onchange="pdQty(${i},this.value)"><b style="text-align:right">${BRL(pdLine(l))}</b><button class="sm" aria-label="Remover ${esc(l.name)}" onclick="pdDel(${i})">✕</button></div>`).join(''):'<div class="mu" style="padding:12px 0">Busque um produto ao lado (ou leia o código de barras) para começar.</div>')
++(PD.cart.length?`<div class="pdr"><span class="mu">Subtotal</span><span>${BRL(sub)}</span></div><div class="pdr"><span class="mu">Desconto (R$)</span><input style="width:110px;margin:0;text-align:right" inputmode="decimal" placeholder="0,00" aria-label="Desconto" value="${esc(PD.disc)}" onchange="pdDiscSet(this.value)"></div>
+<div class="pdr"><span>Total</span><span class="pdt">${BRL(t)}</span></div>
+<div class="mu" style="margin:6px 0">Forma de pagamento:</div><div class="pdm">${['cash','pix','card','fiado'].map(m=>`<button class="sm${PD.pays.some(p=>p.m===m)?' on':''}" onclick="pdPay('${m}')">${PAYN[m]}</button>`).join('')}</div>
+${PD.pays.map((p,i)=>`<div class="pdr"><span>${PAYN[p.m]}</span><span style="display:flex;gap:6px;align-items:center"><input style="width:100px;margin:0;text-align:right" inputmode="decimal" aria-label="Valor em ${PAYN[p.m]}" value="${esc(p.v)}" onchange="pdPayV(${i},this.value)">${p.m==='cash'?`<input style="width:100px;margin:0;text-align:right" inputmode="decimal" placeholder="Recebido" aria-label="Valor recebido em dinheiro" value="${esc(p.recv)}" onchange="pdRecv(${i},this.value)">`:''}<button class="sm" aria-label="Remover pagamento" onclick="pdPayDel(${i})">✕</button></span></div>`).join('')}
+${hasF?`<label>Cliente do fiado<select onchange="PD.cust=this.value;pdRe()"><option value="">Escolha o cliente…</option>${PD.custs.filter(c=>c.limit>0).map(c=>`<option value="${c.id}"${PD.cust===c.id?' selected':''}>${esc(c.name)} — disponível ${BRL(Math.max(0,c.limit-c.bal))}</option>`).join('')}</select></label>`:''}
+<div class="pdr"><span class="mu">Pago</span><span>${BRL(paid)}</span></div>
+${rest>0?`<div class="pdr"><b style="color:var(--no)">Falta</b><b style="color:var(--no)">${BRL(rest)}</b></div>`:rest<0?`<div class="pdr"><b style="color:var(--no)">Pagamento acima do total</b><b style="color:var(--no)">${BRL(-rest)}</b></div>`:''}
+${troco?`<div class="pdr"><b>Troco</b><b class="pdt" style="font-size:22px">${BRL(troco)}</b></div>`:''}
+${bad?`<div class="err">${esc(bad)}</div>`:''}<div class="err" id="pder"></div>
+<button class="pri" style="width:100%" ${okf?'':'disabled'} onclick="pdFinish()">Finalizar venda</button> <button style="width:100%;margin-top:6px" onclick="pdClear()">Limpar venda</button>`:'')}
+function pdClear(){PD.cart=[];PD.pays=[];PD.disc='';PD.cust='';PD.done=null;pdRe();render()}
+async function pdFinish(){const cash=PD.pays.find(p=>p.m==='cash'),pays=PD.pays.map(p=>({m:p.m,v:toCents(p.v),...(p.m==='cash'&&String(p.recv).trim()?{recv:toCents(p.recv)}:{})}));
+if(pays.some(p=>isNaN(p.v)||(p.recv!==undefined&&isNaN(p.recv))))return pdEr('Valor inválido nos pagamentos. Use o formato 25,90.');
+const body={items:PD.cart.map(l=>({itemId:l.id,qty:l.q})),payments:pays,discount:pdDisc()};if(PD.pays.some(p=>p.m==='fiado'))body.customerId=PD.cust;
+try{const r=await api('POST','/erp/pdv/sale',body);PD.done=r.sale;PD.cart=[];PD.pays=[];PD.disc='';PD.cust='';await loadPdv();toast('Venda #'+r.sale.code+' concluída')}catch(e){pdEr(e.message)}}
+const pdEr=m=>{const e=$('#pder');if(e)e.textContent=m};
+function pdRcpt(s){return`*${S.company.name}*\nVenda #${s.code} — ${hhmm(s.t)}\n`+s.items.map(i=>`${QF(i.q,i.unit)} ${i.name} — ${BRL(i.total)}`).join('\n')+(s.discount?`\nDesconto: ${BRL(s.discount)}`:'')+`\n*Total: ${BRL(s.total)}*\n`+s.pays.map(p=>`${PAYN[p.m]}: ${BRL(p.v)}`).join('\n')+(s.change?`\nTroco: ${BRL(s.change)}`:'')+'\nObrigado pela preferência!'}
+const pdWa=s=>{const c=PD.custs.find(x=>x.id===s.customerId);return c?waU(c.phone,pdRcpt(s)):''};
+function pdDoneCard(){const s=PD.done,wa=pdWa(s);return`<div class="card" style="border-color:var(--ok)"><div class="row"><h3 style="margin:0">Venda #${s.code} concluída — ${BRL(s.total)}</h3><button class="sm" onclick="PD.done=null;render()">Fechar</button></div>${s.change?`<p style="font-size:22px;margin:8px 0"><b>Troco: ${BRL(s.change)}</b></p>`:''}<div class="mu">${s.pays.map(p=>PAYN[p.m]+' '+BRL(p.v)).join(' · ')}${s.customer?' · '+esc(s.customer):''}</div>${wa?`<p><a class="btn sm" href="${esc(wa)}" target="_blank" rel="noopener noreferrer">Enviar comprovante no WhatsApp</a></p>`:''}</div>`}
+function pdBar(w){const s=PD.ses;return`<div class="card"><div class="row"><div><b>Caixa aberto</b><div class="mu">desde ${hhmm(s.openedAt)} · por ${esc(s.by)}</div></div><div>${w?`<button class="sm" onclick="pdPanel('move')">Sangria / Suprimento</button> <button class="sm" onclick="pdPanel('close')">Fechar caixa</button>`:''}</div></div>
+<div class="pdb" style="margin-top:10px">${[['Dinheiro esperado',BRL(s.expected)],['Vendas',s.n+(s.voided?' ('+s.voided+' cancelada'+(s.voided>1?'s':'')+')':'')],['Total vendido',BRL(s.total)],['Pix · Cartão · Fiado',[s.pay.pix,s.pay.card,s.pay.fiado].map(BRL).join(' · ')]].map(([l,v])=>`<div class="card ssum"><div class="mu">${l}</div><b${l.startsWith('Pix')?' style="font-size:15px"':''}>${v}</b></div>`).join('')}</div></div>`}
+function pdPanel(p){PD.panel=p;PD.fm=p==='move'?{type:'out',amount:'',note:''}:{counted:'',note:''};render();setTimeout(()=>{const e=$('#pdp');if(e){e.scrollIntoView({behavior:'smooth',block:'start'});const i=e.querySelector('input,select');if(i)i.focus({preventScroll:true})}},0)}
+function pdPanelCard(){const f=PD.fm,s=PD.ses;
+if(PD.panel==='move')return`<div class="card" id="pdp"><h3>Sangria / Suprimento</h3><div class="g"><label>Tipo<select onchange="PD.fm.type=this.value"><option value="out"${f.type==='out'?' selected':''}>Sangria (retirada de dinheiro)</option><option value="in"${f.type==='in'?' selected':''}>Suprimento (entrada de dinheiro)</option></select></label>
+<label>Valor (R$)<input inputmode="decimal" placeholder="0,00" value="${esc(f.amount)}" oninput="PD.fm.amount=this.value"></label><label>Motivo<input maxlength="120" placeholder="Ex.: pagamento de fornecedor" value="${esc(f.note)}" oninput="PD.fm.note=this.value"></label></div>
+<div class="err" id="er"></div><button class="pri" onclick="pdMoveSave()">Confirmar</button> <button onclick="PD.panel=null;render()">Cancelar</button></div>`;
+return`<div class="card" id="pdp"><h3>Fechar caixa</h3><div class="mu" style="line-height:1.7">Troco inicial ${BRL(s.open)} · Vendas em dinheiro ${BRL(s.pay.cash)} · Suprimentos ${BRL(s.sup)} · Sangrias ${BRL(s.san)}<br><b style="color:var(--tx)">Dinheiro esperado na gaveta: ${BRL(s.expected)}</b><br>Pix ${BRL(s.pay.pix)} · Cartão ${BRL(s.pay.card)} · Fiado ${BRL(s.pay.fiado)} · Total vendido ${BRL(s.total)}</div>
+<div class="g" style="margin-top:8px"><label>Dinheiro contado na gaveta (R$)<input inputmode="decimal" placeholder="0,00" value="${esc(f.counted)}" oninput="PD.fm.counted=this.value;pdDiff()"></label><label>Observação (opcional)<input maxlength="200" value="${esc(f.note)}" oninput="PD.fm.note=this.value"></label></div>
+<div id="pdd" class="mu" style="margin:6px 0"></div><div class="err" id="er"></div><button class="pri" onclick="pdCloseSave()">Fechar caixa</button> <button onclick="PD.panel=null;render()">Cancelar</button></div>`}
+function pdDiff(){const e=$('#pdd');if(!e)return;const v=toCents(PD.fm.counted);if(!String(PD.fm.counted).trim()||isNaN(v)){e.textContent='';return}const d=v-PD.ses.expected;e.innerHTML=d===0?'<b style="color:var(--ok)">Caixa batendo certinho.</b>':`<b style="color:var(--no)">${d>0?'Sobra':'Falta'} de ${BRL(Math.abs(d))}</b>`}
+async function pdMoveSave(){const v=toCents(PD.fm.amount);if(!PD.fm.amount.trim()||isNaN(v)||v<=0)return er('Informe um valor válido. Use o formato 25,90.');try{await api('POST','/erp/pdv/move',{type:PD.fm.type,amount:v,note:PD.fm.note});PD.panel=null;await loadPdv();toast('Movimentação registrada')}catch(e){er(e.message)}}
+async function pdCloseSave(){const v=toCents(PD.fm.counted);if(!PD.fm.counted.trim()||isNaN(v))return er('Informe o dinheiro contado. Use o formato 25,90.');
+if(PD.cart.length&&!confirm('Há uma venda em andamento que será descartada. Fechar o caixa mesmo assim?'))return;try{await api('POST','/erp/pdv/close',{counted:v,note:PD.fm.note});PD.panel=null;PD.cart=[];PD.pays=[];await loadPdv();toast('Caixa fechado')}catch(e){er(e.message)}}
+async function pdOpen(){const v=toCents($('#pdo').value);if(isNaN(v))return er('Valor inválido. Use o formato 100,00.');try{await api('POST','/erp/pdv/open',{amount:v});await loadPdv();toast('Caixa aberto')}catch(e){er(e.message)}}
+async function pdVoid(id,code){const r=prompt('Cancelar a venda #'+code+'? Informe o motivo:');if(r===null)return;try{await api('POST','/erp/pdv/sales/'+id+'/void',{reason:r});await loadPdv();toast('Venda #'+code+' cancelada')}catch(e){alert(e.message)}}
+function pdSales(w){if(!PD.sales.length)return'';return`<div class="card"><h3 style="margin-top:0">Vendas deste caixa</h3>`+PD.sales.map(s=>{const wa=s.status==='done'&&pdWa(s);return`<div class="row" style="padding:8px 0;border-top:1px solid var(--bd)${s.status==='void'?';opacity:.6':''}"><div style="min-width:0"><b>#${s.code}</b> <span class="mu">${hhmm(s.t)} · ${esc(s.by)}${s.customer?' · '+esc(s.customer):''}</span><div class="mu">${s.items.map(i=>esc(i.name)).slice(0,3).join(', ')}${s.items.length>3?'…':''} · ${s.pays.map(p=>PAYN[p.m]).join('+')}${s.status==='void'?' · <b>CANCELADA</b> ('+esc(s.voidReason)+')':''}</div></div><div style="text-align:right"><b>${BRL(s.total)}</b><div>${wa?`<a class="btn sm" href="${esc(wa)}" target="_blank" rel="noopener noreferrer">WhatsApp</a> `:''}${s.status==='done'&&can('pdvAdmin')?`<button class="sm" onclick="pdVoid('${s.id}',${s.code})">Cancelar</button>`:''}</div></div></div>`}).join('')+`</div>`}
+function pdHist(){if(!PD.hist.length)return'';return`<div class="card"><h3 style="margin-top:0">Caixas anteriores</h3>`+PD.hist.map(s=>`<div class="row" style="padding:8px 0;border-top:1px solid var(--bd)"><div><b>${hhmm(s.openedAt)}</b> <span class="mu">até ${hhmm(s.closedAt)} · ${esc(s.by)}</span><div class="mu">${s.n} venda${s.n===1?'':'s'} · ${BRL(s.total)} · Dinheiro ${BRL(s.pay.cash)} · Pix ${BRL(s.pay.pix)} · Cartão ${BRL(s.pay.card)} · Fiado ${BRL(s.pay.fiado)}</div></div><div style="text-align:right"><span class="chip ${s.diff===0?'ok':'no'}">${s.diff===0?'Bateu':(s.diff>0?'Sobra ':'Falta ')+BRL(Math.abs(s.diff))}</span><div class="mu">contado ${BRL(s.counted)}</div></div></div>`).join('')+`</div>`}
+function vPdv(){if(PD.items===null)return'<div class="card mu">Carregando…</div>';const w=can('pdv');let h=PD.err?`<div class="card err">${esc(PD.err)}</div>`:'';
+if(!PD.ses)h+=`<div class="card"><h3 style="margin-top:0">Caixa fechado</h3>${w?`<p class="mu">Informe o dinheiro que está na gaveta para dar troco e abra o caixa para começar a vender.</p><label>Troco inicial (R$)<input id="pdo" inputmode="decimal" placeholder="0,00" value="0,00"></label><div class="err" id="er"></div><button class="pri" onclick="pdOpen()">Abrir caixa</button>`:'<p class="mu">Não há caixa aberto no momento.</p>'}</div>`;
+else{h+=pdBar(w)+(PD.panel&&w?pdPanelCard():'')+(PD.done?pdDoneCard():'');
+if(w)h+=`<div class="pdv"><div class="card"><input id="pdq" type="search" autocomplete="off" placeholder="Nome, código ou código de barras (Enter adiciona)" aria-label="Buscar produto" value="${esc(PD.q)}" oninput="pdSearch(this.value)" onkeydown="pdKey(event)"><div id="psr" class="pds${PD.q?'':' e'}">${pdResults()}</div></div><div class="card" id="pcart">${pdCart()}</div></div>`;
+h+=pdSales(w)}
+return h+pdHist()}
 /* ---------- equipe (somente administrador) ---------- */
-const CR={admin:'Administrador',rh:'RH',recrutador:'Recrutador',gestor:'Gestor (somente leitura)'};
+const CR={admin:'Administrador',rh:'RH',recrutador:'Recrutador',gestor:'Gestor (somente leitura)',estoque:'Estoque e loja',vendas:'Vendas e caixa'};
 const crOpts=v=>Object.entries(CR).map(([k,l])=>`<option value="${k}"${v===k?' selected':''}>${l}</option>`).join('');
 async function loadTeam(){try{team=await api('GET','/team');teamErr=''}catch(e){team=[];teamErr=e.message}render()}
 function vEquipe(){const c=S.company;
